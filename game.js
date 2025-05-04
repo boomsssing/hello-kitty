@@ -3000,6 +3000,9 @@ function levelUp() {
 function gameOver() {
   gameState.isPaused = true;
   
+  // Dispatch gameEnd event for mobile controls
+  document.dispatchEvent(new Event('gameEnd'));
+  
   // Try to play game over sound
   try {
     playSound("gameOver");
@@ -3111,6 +3114,9 @@ function startGame() {
   if (!document.getElementById("speedControls")) {
     addSpeedControls();
   }
+  
+  // Dispatch gameStart event for mobile controls
+  document.dispatchEvent(new Event('gameStart'));
   
   // Performance monitoring
   const performanceMonitor = setInterval(() => {
@@ -3256,6 +3262,9 @@ function quitGame() {
   if (animationFrame) {
     cancelAnimationFrame(animationFrame);
   }
+  
+  // Dispatch gameEnd event for mobile controls
+  document.dispatchEvent(new Event('gameEnd'));
   
   // Stop background music
   sounds.background.pause();
@@ -3503,31 +3512,30 @@ window.addEventListener('load', function() {
 
 // Setup mobile controls
 function setupMobileControls() {
+  // Check if mobile controls already exist and remove them if they do
+  const existingControls = document.getElementById("mobileControls");
+  if (existingControls) {
+    existingControls.remove();
+  }
+  
   const mobileControls = document.createElement("div");
   mobileControls.id = "mobileControls";
-  mobileControls.style.position = "fixed";
-  mobileControls.style.bottom = "20px";
-  mobileControls.style.left = "0";
-  mobileControls.style.right = "0";
-  mobileControls.style.display = "flex";
-  mobileControls.style.justifyContent = "space-between";
-  mobileControls.style.padding = "0 20px";
-  mobileControls.style.zIndex = "1000";
+  mobileControls.style.display = "none"; // Start hidden until game begins
   
   // Variables to store interval IDs
   let moveLeftInterval = null;
   let moveRightInterval = null;
   
-  // Standardize button styling
+  // Smaller, more transparent buttons that don't interfere with visuals
   const buttonStyle = {
-    width: "80px",
-    height: "80px",
+    width: "70px",
+    height: "70px",
     borderRadius: "50%",
-    backgroundColor: "rgba(52, 152, 219, 0.8)",
+    backgroundColor: "rgba(52, 152, 219, 0.6)",
     color: "white",
-    fontSize: "40px",
-    border: "4px solid rgba(41, 128, 185, 0.9)",
-    boxShadow: "0 4px 8px rgba(0, 0, 0, 0.3)",
+    fontSize: "36px",
+    border: "3px solid rgba(41, 128, 185, 0.7)",
+    boxShadow: "0 4px 8px rgba(0, 0, 0, 0.2)",
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
@@ -3547,7 +3555,7 @@ function setupMobileControls() {
     e.stopPropagation();
     
     // Visual feedback on press
-    leftBtn.style.backgroundColor = "rgba(41, 128, 185, 0.9)";
+    leftBtn.style.backgroundColor = "rgba(41, 128, 185, 0.8)";
     leftBtn.style.transform = "scale(0.95)";
     
     // Clear any existing intervals first
@@ -3564,7 +3572,7 @@ function setupMobileControls() {
     e.stopPropagation();
     
     // Reset visual state
-    leftBtn.style.backgroundColor = "rgba(52, 152, 219, 0.8)";
+    leftBtn.style.backgroundColor = "rgba(52, 152, 219, 0.6)";
     leftBtn.style.transform = "scale(1)";
     
     if (moveLeftInterval) {
@@ -3577,7 +3585,7 @@ function setupMobileControls() {
     e.preventDefault();
     
     // Reset visual state
-    leftBtn.style.backgroundColor = "rgba(52, 152, 219, 0.8)";
+    leftBtn.style.backgroundColor = "rgba(52, 152, 219, 0.6)";
     leftBtn.style.transform = "scale(1)";
     
     if (moveLeftInterval) {
@@ -3598,7 +3606,7 @@ function setupMobileControls() {
     e.stopPropagation();
     
     // Visual feedback on press
-    rightBtn.style.backgroundColor = "rgba(41, 128, 185, 0.9)";
+    rightBtn.style.backgroundColor = "rgba(41, 128, 185, 0.8)";
     rightBtn.style.transform = "scale(0.95)";
     
     // Clear any existing intervals first
@@ -3615,7 +3623,7 @@ function setupMobileControls() {
     e.stopPropagation();
     
     // Reset visual state
-    rightBtn.style.backgroundColor = "rgba(52, 152, 219, 0.8)";
+    rightBtn.style.backgroundColor = "rgba(52, 152, 219, 0.6)";
     rightBtn.style.transform = "scale(1)";
     
     if (moveRightInterval) {
@@ -3628,7 +3636,7 @@ function setupMobileControls() {
     e.preventDefault();
     
     // Reset visual state
-    rightBtn.style.backgroundColor = "rgba(52, 152, 219, 0.8)";
+    rightBtn.style.backgroundColor = "rgba(52, 152, 219, 0.6)";
     rightBtn.style.transform = "scale(1)";
     
     if (moveRightInterval) {
@@ -3652,6 +3660,17 @@ function setupMobileControls() {
       moveRightInterval = null;
     }
   }, { passive: true });
+  
+  // Show controls when game starts, hide when game ends
+  document.addEventListener("gameStart", () => {
+    mobileControls.style.display = "flex";
+  });
+  
+  document.addEventListener("gameEnd", () => {
+    mobileControls.style.display = "none";
+  });
+  
+  return mobileControls;
 }
 
 // Add a test function that can be called from the console

@@ -5,13 +5,16 @@ body {
   align-items: center;
   flex-direction: column;
   height: 100vh;
+  width: 100%;
   margin: 0;
   background: linear-gradient(135deg, #87CEEB, #3498db, #2980b9, #1abc9c);
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   overflow: hidden;
   background-size: 400% 400%;
   animation: gradientBG 15s ease infinite;
-  position: relative;
+  position: fixed;
+  top: 0;
+  left: 0;
 }
 
 @keyframes gradientBG {
@@ -186,6 +189,7 @@ canvas {
   max-width: 90%;
   position: relative;
   overflow: hidden;
+  z-index: 10;
 }
 
 /* 3D Title */
@@ -529,29 +533,22 @@ p {
 /* Mobile-specific styles */
 @media (max-width: 500px) {
   body {
-    padding: 10px;
-    background: linear-gradient(135deg, #87CEEB, #3498db, #2980b9, #1abc9c);
-    background-size: 400% 400%;
-    animation: gradientBG 15s ease infinite;
-  }
-  
-  /* Ensure the sparkling background effect is present on mobile */
-  body::before {
-    background-size: 200% 200%;
-    animation: sparkle 8s linear infinite;
+    padding: 0;
+    position: fixed;
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
   }
   
   canvas {
     max-width: 95%;
     margin: 0 auto;
-    border: 4px solid #3498db;
   }
   
   #intro, #gameOver, #levelUp {
     width: 90%;
     padding: 20px;
-    background: rgba(255, 255, 255, 0.8);
-    border: 3px solid #3498db;
+    box-sizing: border-box;
   }
   
   .button {
@@ -570,16 +567,15 @@ p {
   #score, #level, #lives, #powerup {
     font-size: 16px;
     padding: 4px 10px;
-    background: rgba(255, 255, 255, 0.7);
   }
   
   #score { top: 5px; left: 5px; }
-  #level { top: 5px; right: 5px; }
-  #lives { top: 45px; left: 5px; }
-  #powerup { top: 45px; right: 5px; }
+  #level { top: 45px; right: 5px; }
+  #lives { top: 35px; left: 5px; }
+  #powerup { top: 35px; right: 5px; }
   
   #progressContainer {
-    top: 90px;
+    top: 80px;
     width: 80%;
   }
   
@@ -609,24 +605,21 @@ p {
   .corner-decor {
     font-size: 20px;
   }
-  
-  /* Hide arrow key instructions on mobile */
-  .control-hint {
-    display: none !important;
-  }
 }
 
 /* Touch controls for mobile */
 #mobileControls {
   position: fixed;
   bottom: 70px;
+  left: 0;
+  right: 0;
   width: 100%;
   display: flex;
   justify-content: space-between;
-  padding: 0 20px;
+  padding: 0 50px;
   box-sizing: border-box;
   z-index: 100;
-  pointer-events: auto;
+  pointer-events: none; /* This ensures clicks pass through the container but not the buttons */
 }
 
 .controlBtn {
@@ -645,6 +638,7 @@ p {
   -webkit-user-select: none;
   -moz-user-select: none;
   touch-action: manipulation;
+  pointer-events: auto; /* Enable touch/click events on the buttons */
 }
 
 .controlBtn:active {
