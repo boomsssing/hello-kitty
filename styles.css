@@ -426,20 +426,15 @@ canvas {
 
 #mobile-control-hint {
   display: none;
-  font-size: 16px;
-  color: #7f8c8d;
-  background-color: rgba(0,0,0,0.05);
-  padding: 5px 10px;
-  border-radius: 8px;
 }
 
 /* Show appropriate instructions based on device */
 @media (hover: none) and (pointer: coarse) {
   #mobile-control-hint {
-    display: inline-block !important; /* Force display on mobile devices */
+    display: inline-block;
   }
   #desktop-control-hint {
-    display: none !important; /* Force hide on mobile devices */
+    display: none;
   }
 }
 
@@ -535,28 +530,33 @@ p {
 @media (max-width: 500px) {
   body {
     padding: 10px;
-    background: linear-gradient(135deg, #87CEEB, #3498db, #2980b9, #1abc9c); /* Ensure same background on mobile */
+    background: linear-gradient(135deg, #87CEEB, #3498db, #2980b9, #1abc9c);
     background-size: 400% 400%;
     animation: gradientBG 15s ease infinite;
+  }
+  
+  /* Ensure the sparkling background effect is present on mobile */
+  body::before {
+    background-size: 200% 200%;
+    animation: sparkle 8s linear infinite;
   }
   
   canvas {
     max-width: 95%;
     margin: 0 auto;
-    border: 5px solid #3498db; /* Consistent border color */
+    border: 4px solid #3498db;
   }
   
   #intro, #gameOver, #levelUp {
     width: 90%;
     padding: 20px;
-    background: rgba(255, 255, 255, 0.8); /* Consistent background opacity */
-    border: 3px solid #3498db; /* Consistent border color */
+    background: rgba(255, 255, 255, 0.8);
+    border: 3px solid #3498db;
   }
   
   .button {
     padding: 10px 20px;
     font-size: 16px;
-    background: linear-gradient(to bottom, #3498db, #2980b9); /* Consistent button background */
   }
   
   .title-3d {
@@ -570,18 +570,17 @@ p {
   #score, #level, #lives, #powerup {
     font-size: 16px;
     padding: 4px 10px;
-    background: rgba(255, 255, 255, 0.8); /* More visible background */
+    background: rgba(255, 255, 255, 0.7);
   }
   
   #score { top: 5px; left: 5px; }
-  #level { top: 5px; right: 5px; } /* Level in top right corner */
-  #lives { top: 40px; left: 5px; } /* Lower the lives indicator */
-  #powerup { top: 40px; right: 5px; } /* Lower the powerup indicator */
+  #level { top: 5px; right: 5px; }
+  #lives { top: 45px; left: 5px; }
+  #powerup { top: 45px; right: 5px; }
   
   #progressContainer {
-    top: 75px; /* Further down to avoid overlap */
+    top: 90px;
     width: 80%;
-    height: 12px; /* Slightly smaller height */
   }
   
   .spinner {
@@ -595,30 +594,6 @@ p {
   .wobble {
     font-size: 18px;
     padding: 12px 25px;
-    background: linear-gradient(to bottom, #e74c3c, #c0392b); /* Consistent colors */
-  }
-  
-  /* Improved control hint visibility for mobile */
-  #mobile-control-hint {
-    margin-top: 10px;
-    background-color: rgba(0,0,0,0.1);
-    padding: 8px 12px;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  }
-  
-  /* Mobile controls styling */
-  #mobileControls {
-    bottom: 20px; /* Position higher up for mobile */
-    padding: 0 30px; /* Wider padding for edge spacing */
-  }
-  
-  .controlBtn {
-    width: 70px; /* Slightly larger buttons for better touch targets */
-    height: 70px;
-    font-size: 30px;
-    background: rgba(52, 152, 219, 0.8); /* More visible buttons */
-    border: 2px solid rgba(255, 255, 255, 0.3); /* Add subtle border */
   }
   
   .floating-magnet {
@@ -633,6 +608,11 @@ p {
   
   .corner-decor {
     font-size: 20px;
+  }
+  
+  /* Hide arrow key instructions on mobile */
+  .control-hint {
+    display: none !important;
   }
 }
 
