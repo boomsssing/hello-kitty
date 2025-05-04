@@ -3,307 +3,81 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Hello Kitty Catch Game</title>
-    <style>
-      body {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        flex-direction: column;
-        height: 100vh;
-        margin: 0;
-        background: linear-gradient(to bottom, #ffefba, #ffffff);
-        overflow: hidden;
-      }
-      canvas {
-        background-color: #f0f8ff;
-        border-radius: 15px;
-        max-width: 100%;
-        height: auto;
-        display: none; /* Hide the canvas initially */
-      }
-      #score {
-        position: absolute;
-        top: 10px;
-        font-size: 24px;
-        color: #ff69b4;
-        font-weight: bold;
-      }
-      .button {
-        margin-top: 10px;
-        padding: 10px 15px;
-        font-size: 16px;
-        color: white;
-        background-color: #ff69b4;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-      }
-      .button:hover {
-        background-color: #ff1493;
-      }
-      #intro {
-        text-align: center;
-        padding: 20px;
-        background: rgba(255, 255, 255, 0.8);
-        border-radius: 10px;
-        width: 300px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-      }
-    </style>
+    <title>FETCH or CATCH!</title>
+    <link rel="stylesheet" href="styles.css">
   </head>
   <body>
     <div id="intro">
-      <h1>Hello Kitty Catch Game</h1>
-      <p>
-        Welcome to the Hello Kitty Catch Game! Use the left and right arrow keys
-        (or swipe on mobile) to catch the falling Hello Kitty characters! Avoid
-        the falling obstacles, as they will deduct points. Collect as many Hello
-        Kitty characters as you can to score points!
-      </p>
-      <button id="startGameBtn" class="button">Start Game</button>
+      <div class="title-3d">FETCH or CATCH!</div>
+      
+      <!-- Enhanced 3D elements -->
+      <div class="floating-magnet">🧲</div>
+      <div class="floating-star left">⭐</div>
+      <div class="floating-star right">⭐</div>
+      
+      <div class="spinner-container">
+        <div class="spinner">
+          <div class="spinner-item">🍎</div>
+          <div class="spinner-item">🍊</div>
+          <div class="spinner-item">🍌</div>
+          <div class="spinner-item">💎</div>
+          <div class="spinner-item">🧲</div>
+          <div class="spinner-item">💥</div>
+          <div class="spinner-item">❄️</div>
+          <div class="spinner-item">🔍</div>
+        </div>
+      </div>
+      
+      <div id="simple-instructions">
+        <p class="fun-text">Catch the GOOD stuff!</p>
+        <p class="fun-text">Avoid the BAD stuff!</p>
+        <p class="fun-text">Get AWESOME powers!</p>
+        <p class="control-hint" id="desktop-control-hint">Use ← → keys to move</p>
+        <p class="control-hint" id="mobile-control-hint">Use the arrow buttons to move</p>
+      </div>
+      
+      <button id="startGameBtn" class="button wobble">PLAY NOW!</button>
+      
+      <!-- 3D effects -->
+      <div class="floating-bomb">💣</div>
+      <div class="corner-decor top-left">🎮</div>
+      <div class="corner-decor top-right">🍦</div>
+      <div class="corner-decor bottom-left">🚀</div>
+      <div class="corner-decor bottom-right">🎯</div>
     </div>
 
-    <div id="score">Score: 0</div>
+    <div id="gameInterface">
+      <div id="score">Score: 0</div>
+      <div id="level">Level: 1</div>
+      <div id="lives">Lives: 3</div>
+      <div id="powerup" class="hidden">PowerUp: None</div>
+      <div id="progressContainer">
+        <div id="progressBar"></div>
+      </div>
+    </div>
     <canvas id="gameCanvas" width="400" height="600"></canvas>
-    <button id="restartBtn" class="button">Restart</button>
-    <button id="pauseBtn" class="button">Pause</button>
-    <button id="quitBtn" class="button">Quit</button>
+    
+    <div id="controls">
+      <button id="restartBtn" class="button">Restart</button>
+      <button id="pauseBtn" class="button">Pause</button>
+      <button id="quitBtn" class="button">Quit</button>
+      <button id="muteBtn" class="button">🔊</button>
+    </div>
 
-    <script>
-      const canvas = document.getElementById("gameCanvas");
-      const ctx = canvas.getContext("2d");
-      const intro = document.getElementById("intro");
+    <div id="levelUp">
+      <h2>Level Complete!</h2>
+      <p id="levelUpText">You've reached level <span id="newLevel">2</span>!</p>
+      <p>New challenges await...</p>
+      <button id="nextLevelBtn" class="button">Continue</button>
+    </div>
 
-      // Load Hello Kitty Images with Points
-      const kittyData = [
-        { src: "hellokitty.jpg", points: 1 },
-        { src: "hellokitty1.jpg", points: 2 },
-        { src: "hellokitty2.jpg", points: 3 },
-      ];
+    <div id="gameOver">
+      <h2>Game Over</h2>
+      <p>Your final score: <span id="finalScore">0</span></p>
+      <p>Level reached: <span id="finalLevel">1</span></p>
+      <button id="playAgainBtn" class="button">Play Again</button>
+    </div>
 
-      const kittyImages = kittyData.map((data) => {
-        const img = new Image();
-        img.src = data.src;
-        img.points = data.points;
-        return img;
-      });
-
-      // Basket properties
-      const basket = { x: 170, y: 550, width: 60, height: 20, speed: 20 };
-      let kittyHeads = [];
-      let obstacles = [];
-      let score = 0;
-      const maxObstacles = 3; // Maximum number of obstacles on screen
-      let isPaused = false;
-      let gameInterval;
-
-      function createKittyHead() {
-        const randomImage =
-          kittyImages[Math.floor(Math.random() * kittyImages.length)];
-        return {
-          x: Math.random() * (canvas.width - 30),
-          y: 0,
-          speed: 2 + Math.random(),
-          size: 30,
-          image: randomImage,
-          points: randomImage.points,
-        };
-      }
-
-      function createObstacle() {
-        const shape = Math.random() < 0.5 ? "star" : "circle";
-        const deduction = shape === "star" ? 1 : 2;
-        return {
-          x: Math.random() * (canvas.width - 30),
-          y: 0,
-          speed: 2 + Math.random(),
-          size: 30,
-          shape: shape,
-          points: deduction,
-        };
-      }
-
-      function drawBasket() {
-        ctx.fillStyle = "#ff69b4";
-        ctx.fillRect(basket.x, basket.y, basket.width, basket.height);
-      }
-
-      function drawKittyHeads() {
-        kittyHeads.forEach((head) => {
-          ctx.drawImage(head.image, head.x, head.y, head.size, head.size);
-          head.y += head.speed;
-        });
-      }
-
-      function drawObstacles() {
-        obstacles.forEach((obstacle) => {
-          ctx.fillStyle = obstacle.shape === "star" ? "yellow" : "red";
-          if (obstacle.shape === "star") {
-            drawStar(obstacle.x, obstacle.y, 5, 15, 7.5);
-          } else {
-            ctx.beginPath();
-            ctx.arc(obstacle.x + 15, obstacle.y + 15, 15, 0, Math.PI * 2);
-            ctx.fill();
-          }
-          obstacle.y += obstacle.speed;
-        });
-      }
-
-      function drawStar(x, y, spikes, outerRadius, innerRadius) {
-        let rot = (Math.PI / 2) * 3;
-        let cx = x + outerRadius;
-        let cy = y + outerRadius;
-        let step = Math.PI / spikes;
-
-        ctx.beginPath();
-        ctx.moveTo(cx, cy - outerRadius);
-        for (let i = 0; i < spikes; i++) {
-          cx = x + Math.cos(rot) * outerRadius;
-          cy = y + Math.sin(rot) * outerRadius;
-          ctx.lineTo(cx, cy);
-          rot += step;
-
-          cx = x + Math.cos(rot) * innerRadius;
-          cy = y + Math.sin(rot) * innerRadius;
-          ctx.lineTo(cx, cy);
-          rot += step;
-        }
-        ctx.lineTo(x, y - outerRadius);
-        ctx.closePath();
-        ctx.fill();
-      }
-
-      function checkCollision(item) {
-        return (
-          item.x < basket.x + basket.width &&
-          item.x + item.size > basket.x &&
-          item.y + item.size > basket.y &&
-          item.y < basket.y + basket.height
-        );
-      }
-
-      function moveBasket(event) {
-        if (event.key === "ArrowLeft" && basket.x > 0) {
-          basket.x -= basket.speed;
-        } else if (
-          event.key === "ArrowRight" &&
-          basket.x + basket.width < canvas.width
-        ) {
-          basket.x += basket.speed;
-        }
-      }
-
-      function touchMoveBasket(event) {
-        const touch = event.touches[0];
-        basket.x = touch.clientX - canvas.offsetLeft - basket.width / 2;
-        if (basket.x < 0) basket.x = 0;
-        if (basket.x + basket.width > canvas.width)
-          basket.x = canvas.width - basket.width;
-        event.preventDefault();
-      }
-
-      function updateScore() {
-        document.getElementById("score").innerText = `Score: ${score}`;
-      }
-
-      function gameLoop() {
-        if (!isPaused) {
-          ctx.clearRect(0, 0, canvas.width, canvas.height);
-          drawBasket();
-          drawKittyHeads();
-          drawObstacles();
-
-          kittyHeads.forEach((head, index) => {
-            if (checkCollision(head)) {
-              score += head.points;
-              updateScore();
-              kittyHeads.splice(index, 1);
-              kittyHeads.push(createKittyHead());
-            } else if (head.y > canvas.height) {
-              kittyHeads[index] = createKittyHead();
-            }
-          });
-
-          obstacles.forEach((obstacle, index) => {
-            if (checkCollision(obstacle)) {
-              score -= obstacle.points;
-              updateScore();
-              obstacles.splice(index, 1);
-            } else if (obstacle.y > canvas.height) {
-              obstacles.splice(index, 1);
-            }
-          });
-        }
-        requestAnimationFrame(gameLoop);
-      }
-
-      function startGame() {
-        score = 0;
-        kittyHeads = [];
-        obstacles = [];
-        document.getElementById("score").innerText = `Score: ${score}`;
-        intro.style.display = "none"; // Hide the intro
-        canvas.style.display = "block"; // Show the game canvas
-        for (let i = 0; i < 5; i++) {
-          kittyHeads.push(createKittyHead());
-        }
-        gameInterval = setInterval(() => {
-          if (obstacles.length < maxObstacles) {
-            obstacles.push(createObstacle());
-          }
-        }, 2000);
-        gameLoop();
-      }
-
-      function restartGame() {
-        score = 0;
-        kittyHeads = [];
-        obstacles = [];
-        document.getElementById("score").innerText = `Score: ${score}`;
-        for (let i = 0; i < 5; i++) {
-          kittyHeads.push(createKittyHead());
-        }
-        isPaused = false;
-        clearInterval(gameInterval);
-        gameInterval = setInterval(() => {
-          if (obstacles.length < maxObstacles) {
-            obstacles.push(createObstacle());
-          }
-        }, 2000);
-        gameLoop();
-      }
-
-      function pauseGame() {
-        isPaused = !isPaused;
-        document.getElementById("pauseBtn").innerText = isPaused
-          ? "Unpause"
-          : "Pause";
-      }
-
-      function quitGame() {
-        clearInterval(gameInterval);
-        kittyHeads = [];
-        obstacles = [];
-        isPaused = false;
-        canvas.style.display = "none"; // Hide the game canvas
-        intro.style.display = "flex"; // Show the intro again
-        document.getElementById("score").innerText = `Score: 0`;
-      }
-
-      document
-        .getElementById("startGameBtn")
-        .addEventListener("click", startGame);
-      document
-        .getElementById("restartBtn")
-        .addEventListener("click", restartGame);
-      document.getElementById("pauseBtn").addEventListener("click", pauseGame);
-      document.getElementById("quitBtn").addEventListener("click", quitGame);
-      window.addEventListener("keydown", moveBasket);
-      window.addEventListener("touchmove", touchMoveBasket);
-    </script>
+    <script src="game.js"></script>
   </body>
 </html>
