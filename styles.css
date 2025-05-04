@@ -56,6 +56,8 @@ canvas {
   border: 5px solid #3498db;
   transform-style: preserve-3d;
   perspective: 1000px;
+  z-index: 5;
+  position: relative;
 }
 
 #gameInterface {
@@ -65,6 +67,7 @@ canvas {
   width: 100%;
   z-index: 100;
   display: none;
+  pointer-events: none;
 }
 
 #score, #level, #lives, #powerup {
@@ -80,10 +83,11 @@ canvas {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   transform: translateZ(10px);
   transition: all 0.3s ease;
+  pointer-events: none;
 }
 
 #score { top: 10px; left: 10px; }
-#level { top: 60px; right: 10px; }
+#level { top: 50px; right: 10px; min-width: 80px; text-align: center; }
 #lives { top: 50px; left: 10px; }
 #powerup { top: 50px; right: 10px; }
 
@@ -98,6 +102,7 @@ canvas {
   border-radius: 10px;
   overflow: hidden;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  pointer-events: none;
 }
 
 #progressBar {
@@ -169,6 +174,11 @@ canvas {
   display: none;
   margin-top: 15px;
   transition: transform 0.3s ease;
+  position: relative;
+  z-index: 50;
+  width: 100%;
+  justify-content: center;
+  align-items: center;
 }
 
 #intro {
@@ -543,6 +553,7 @@ p {
   canvas {
     max-width: 95%;
     margin: 0 auto;
+    margin-bottom: 70px; /* Make room for controls */
   }
   
   #intro, #gameOver, #levelUp {
@@ -552,86 +563,124 @@ p {
   }
   
   .button {
-    padding: 10px 20px;
-    font-size: 16px;
+    padding: 8px 16px;
+    font-size: 14px;
+    margin: 4px;
   }
   
   .title-3d {
-    font-size: 32px;
+    font-size: 30px;
   }
   
   h2 {
-    font-size: 24px;
+    font-size: 22px;
   }
 
   #score, #level, #lives, #powerup {
-    font-size: 16px;
-    padding: 4px 10px;
+    font-size: 12px;
+    padding: 3px 8px;
   }
   
   #score { top: 5px; left: 5px; }
-  #level { top: 45px; right: 5px; }
-  #lives { top: 35px; left: 5px; }
-  #powerup { top: 35px; right: 5px; }
+  #level { top: 28px; right: 5px; min-width: 60px; font-size: 11px; }
+  #lives { top: 28px; left: 5px; }
+  #powerup { top: 28px; right: 5px; }
   
   #progressContainer {
-    top: 80px;
-    width: 80%;
+    top: 52px; /* Lower the progress bar to avoid overlap */
+    width: 90%;
+    height: 8px;
+  }
+  
+  /* Special handling for speed controls on mobile */
+  #speedControls {
+    position: absolute !important;
+    top: 5px !important;
+    right: 80px !important; /* Position to prevent overlap with level */
+    transform: scale(0.8); /* Make it slightly smaller to fit */
+  }
+  
+  #speedControls button {
+    padding: 2px 6px !important;
+    font-size: 12px !important;
+  }
+  
+  #speedLabel {
+    font-size: 11px !important;
+    padding: 2px 4px !important;
+  }
+  
+  #controls {
+    position: fixed;
+    bottom: 10px;
+    left: 0;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.3);
+    border-top: 1px solid rgba(255, 255, 255, 0.5);
+    padding: 5px 0;
+    box-sizing: border-box;
+    width: 100%;
+    margin-top: 0;
+  }
+  
+  #controls button {
+    margin: 2px 4px;
+    padding: 6px 12px;
+    font-size: 12px;
   }
   
   .spinner {
-    transform: scale(0.8);
+    transform: scale(0.7);
   }
   
   .fun-text {
-    font-size: 16px;
+    font-size: 15px;
+    margin: 6px 0;
   }
   
   .wobble {
-    font-size: 18px;
-    padding: 12px 25px;
+    font-size: 16px;
+    padding: 10px 22px;
+  }
+
+  /* Make sure intro elements don't interfere with each other */
+  #simple-instructions {
+    margin: 10px 0;
   }
   
-  .floating-magnet {
-    font-size: 40px;
-    top: 60px;
-    right: 20px;
-  }
-  
-  .floating-star {
-    font-size: 24px;
-  }
-  
-  .corner-decor {
-    font-size: 20px;
+  .control-hint {
+    font-size: 14px;
+    margin-top: 8px;
   }
 }
 
 /* Touch controls for mobile */
 #mobileControls {
   position: fixed;
-  bottom: 70px;
+  bottom: 60px; /* Position higher to avoid overlap with game controls */
   left: 0;
   right: 0;
   width: 100%;
   display: flex;
   justify-content: space-between;
-  padding: 0 50px;
+  padding: 0 30px;
   box-sizing: border-box;
-  z-index: 100;
+  z-index: 90; /* Lower than game interface but higher than canvas */
   pointer-events: none; /* This ensures clicks pass through the container but not the buttons */
 }
 
 .controlBtn {
-  width: 60px;
-  height: 60px;
-  background: rgba(52, 152, 219, 0.7);
+  width: 55px;
+  height: 55px;
+  background: rgba(52, 152, 219, 0.6);
   border-radius: 50%;
   display: flex;
   justify-content: center;
   align-items: center;
-  font-size: 24px;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  font-size: 22px;
+  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
   color: white;
   font-weight: bold;
   user-select: none;

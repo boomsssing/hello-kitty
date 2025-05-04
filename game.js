@@ -3883,9 +3883,10 @@ function addSpeedControls() {
   speedControlsDiv.id = "speedControls";
   speedControlsDiv.style.position = "absolute";
   speedControlsDiv.style.top = "10px";
-  speedControlsDiv.style.right = "10px";
+  speedControlsDiv.style.right = "100px"; // Move further right to avoid overlap with level
   speedControlsDiv.style.display = "flex";
   speedControlsDiv.style.gap = "5px";
+  speedControlsDiv.style.zIndex = "110"; // Ensure it's above other elements
   
   const speedLabel = document.createElement("div");
   speedLabel.id = "speedLabel";
@@ -3966,89 +3967,45 @@ function updateSpeedLabel() {
     else if (gameState.gameSpeed > 1.0) speedText = "Fast";
     
     speedLabel.innerText = `Speed: ${speedText}`;
-    
-    // Update level position after speed label changes
-    setTimeout(() => {
-      const levelElement = document.getElementById("level");
-      const speedControls = document.getElementById("speedControls");
-      
-      if (levelElement && speedControls) {
-        // Get position of speed controls
-        const speedRect = speedControls.getBoundingClientRect();
-        
-        // Move level display below speed controls
-        levelElement.style.top = (speedRect.bottom + 10) + "px";
-        levelElement.style.right = "10px";
-      }
-    }, 50);
   }
 }
 
 // Fix UI overlap issue by moving level display
-// This code will move the UI position via JavaScript rather than modifying CSS
-// to ensure that it doesn't overlap with the game speed controls
-window.addEventListener("DOMContentLoaded", function() {
-  // Make sure this runs after the speed controls are added
-  setTimeout(() => {
-    const levelElement = document.getElementById("level");
-    const speedControls = document.getElementById("speedControls");
-    
-    if (levelElement && speedControls) {
-      // Get position of speed controls
-      const speedRect = speedControls.getBoundingClientRect();
-      
-      // Move level display below speed controls
-      levelElement.style.top = (speedRect.bottom + 10) + "px";
-      levelElement.style.right = "10px";
-    }
-  }, 500); // Slight delay to ensure all elements are loaded
-});
+// This code is no longer needed as we're handling position through CSS
+// window.addEventListener("DOMContentLoaded", function() {
+//   // Make sure this runs after the speed controls are added
+//   setTimeout(() => {
+//     const levelElement = document.getElementById("level");
+//     const speedControls = document.getElementById("speedControls");
+//     
+//     if (levelElement && speedControls) {
+//       // Get position of speed controls
+//       const speedRect = speedControls.getBoundingClientRect();
+//       
+//       // Move level display below speed controls
+//       levelElement.style.top = (speedRect.bottom + 10) + "px";
+//       levelElement.style.right = "10px";
+//     }
+//   }, 500); // Slight delay to ensure all elements are loaded
+// });
 
 // Update level position whenever window is resized
-window.addEventListener("resize", function() {
-  setTimeout(() => {
-    const levelElement = document.getElementById("level");
-    const speedControls = document.getElementById("speedControls");
-    
-    if (levelElement && speedControls) {
-      // Get position of speed controls
-      const speedRect = speedControls.getBoundingClientRect();
-      
-      // Move level display below speed controls
-      levelElement.style.top = (speedRect.bottom + 10) + "px";
-      levelElement.style.right = "10px";
-    }
-  }, 100);
-});
-
-// Also update level position whenever game speed is changed
-function updateSpeedLabel() {
-  const speedLabel = document.getElementById("speedLabel");
-  if (speedLabel) {
-    let speedText = "Normal";
-    if (gameState.gameSpeed < 0.75) speedText = "Very Slow";
-    else if (gameState.gameSpeed < 1.0) speedText = "Slow";
-    else if (gameState.gameSpeed > 1.5) speedText = "Very Fast";
-    else if (gameState.gameSpeed > 1.0) speedText = "Fast";
-    
-    speedLabel.innerText = `Speed: ${speedText}`;
-    
-    // Update level position after speed label changes
-    setTimeout(() => {
-      const levelElement = document.getElementById("level");
-      const speedControls = document.getElementById("speedControls");
-      
-      if (levelElement && speedControls) {
-        // Get position of speed controls
-        const speedRect = speedControls.getBoundingClientRect();
-        
-        // Move level display below speed controls
-        levelElement.style.top = (speedRect.bottom + 10) + "px";
-        levelElement.style.right = "10px";
-      }
-    }, 50);
-  }
-}
+// This code is no longer needed as we're handling position through CSS
+// window.addEventListener("resize", function() {
+//   setTimeout(() => {
+//     const levelElement = document.getElementById("level");
+//     const speedControls = document.getElementById("speedControls");
+//     
+//     if (levelElement && speedControls) {
+//       // Get position of speed controls
+//       const speedRect = speedControls.getBoundingClientRect();
+//       
+//       // Move level display below speed controls
+//       levelElement.style.top = (speedRect.bottom + 10) + "px";
+//       levelElement.style.right = "10px";
+//     }
+//   }, 100);
+// });
 
 // Create a dedicated heart explosion effect function for the extraLife powerup
 function createHeartExplosion() {
