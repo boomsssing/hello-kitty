@@ -3159,30 +3159,131 @@ canvas.addEventListener("touchmove", touchMoveBasket);
 
 // Make canvas responsive
 function resizeCanvas() {
-  const maxWidth = window.innerWidth * 0.9;
-  const maxHeight = window.innerHeight * 0.7;
+  // Get actual device dimensions including any browser UI
+  const screenWidth = window.innerWidth;
+  const screenHeight = window.innerHeight;
+  
+  // Calculate available space (accounting for UI elements)
+  const maxWidth = screenWidth * 0.9;
+  const maxHeight = screenHeight * 0.7;
+  
+  // Get the original aspect ratio of the canvas
   const aspectRatio = canvas.width / canvas.height;
   
+  // Calculate dimensions while preserving aspect ratio
   let newWidth = maxWidth;
   let newHeight = newWidth / aspectRatio;
   
+  // If height is too large, recalculate based on max height
   if (newHeight > maxHeight) {
     newHeight = maxHeight;
     newWidth = newHeight * aspectRatio;
   }
   
+  // Apply new dimensions to the canvas
   canvas.style.width = newWidth + "px";
   canvas.style.height = newHeight + "px";
+  
+  // Check if this is a mobile device with a notch
+  if (window.screen && window.screen.height > window.screen.width && window.innerHeight < window.screen.height) {
+    // This is likely a device with a notch or system UI taking up space
+    // Adjust the game container as needed
+    document.body.style.paddingTop = "env(safe-area-inset-top)";
+    document.body.style.paddingBottom = "env(safe-area-inset-bottom)";
+  }
+  
+  // Ensure mobile controls are properly positioned
+  positionMobileControls();
+}
+
+// Position mobile controls based on current screen dimensions
+function positionMobileControls() {
+  const mobileControls = document.getElementById('mobileControls');
+  if (!mobileControls) return;
+  
+  // Detect orientation
+  const isLandscape = window.innerWidth > window.innerHeight;
+  
+  if (isLandscape) {
+    // Landscape mode - position controls vertically on the right
+    mobileControls.style.flexDirection = 'column';
+    mobileControls.style.right = '20px';
+    mobileControls.style.bottom = '50%';
+    mobileControls.style.transform = 'translateY(50%)';
+    mobileControls.style.width = 'auto';
+    mobileControls.style.height = '40%';
+    mobileControls.style.padding = '10px 0';
+  } else {
+    // Portrait mode - position controls horizontally at the bottom
+    mobileControls.style.flexDirection = 'row';
+    mobileControls.style.bottom = '85px';
+    mobileControls.style.right = 'auto';
+    mobileControls.style.width = '100%';
+    mobileControls.style.height = 'auto';
+    mobileControls.style.transform = 'none';
+    mobileControls.style.padding = '0 30px';
+    
+    // Adjust for devices with home indicator (like iPhone X+)
+    if ('env(safe-area-inset-bottom)' in document.body.style) {
+      mobileControls.style.bottom = 'calc(85px + env(safe-area-inset-bottom))';
+    }
+  }
+}
+
+// Prevent pinch-zoom on mobile
+function preventZoom(e) {
+  if (e.touches.length > 1) {
+    e.preventDefault();
+  }
 }
 
 // Initial resize and resize on window change
 resizeCanvas();
-window.addEventListener("resize", resizeCanvas);
+window.addEventListener("resize", function() {
+  resizeCanvas();
+  // Short delay to ensure dimensions are correct after rotation
+  setTimeout(positionMobileControls, 300);
+});
 
 // Prevent context menu on long press (mobile)
 canvas.addEventListener('contextmenu', function(e) {
   e.preventDefault();
 });
+
+// Add touch event listeners to prevent zooming
+document.addEventListener('touchstart', preventZoom, { passive: false });
+document.addEventListener('touchmove', function(e) {
+  if (e.touches.length > 1) {
+    e.preventDefault();
+  }
+}, { passive: false });
+
+// Update orientation handling
+window.addEventListener('orientationchange', function() {
+  // Short delay to ensure dimensions are correct after rotation
+  setTimeout(function() {
+    resizeCanvas();
+    positionMobileControls();
+  }, 300);
+});
+
+// Handle touch movement for mobile with improved accuracy
+function touchMoveBasket(event) {
+  if (gameState.isPaused) return;
+  
+  // Prevent default to avoid scrolling and other browser gestures
+  event.preventDefault();
+  
+  const touch = event.touches[0];
+  const rect = canvas.getBoundingClientRect();
+  
+  // Calculate touch position relative to canvas with proper scaling
+  const scaleX = canvas.width / rect.width;
+  const touchX = (touch.clientX - rect.left) * scaleX;
+  
+  // Move basket with position clamping to prevent offscreen issues
+  basket.x = Math.max(0, Math.min(canvas.width - basket.width, touchX - (basket.width / 2)));
+}
 
 // Initialize the game when the page loads
 window.addEventListener('load', function() {
@@ -3301,16 +3402,24 @@ window.addEventListener('load', function() {
 
 // Setup mobile controls
 function setupMobileControls() {
+  // Check if controls already exist
+  if (document.getElementById('mobileControls')) {
+    return;
+  }
+  
   const mobileControls = document.createElement("div");
   mobileControls.id = "mobileControls";
   mobileControls.style.position = "fixed";
   mobileControls.style.bottom = "20px";
   mobileControls.style.left = "0";
   mobileControls.style.right = "0";
-  mobileControls.style.display = "flex";
+  mobileControls.style.display = "none"; // Start hidden, will be shown later
   mobileControls.style.justifyContent = "space-between";
   mobileControls.style.padding = "0 20px";
   mobileControls.style.zIndex = "1000";
+  mobileControls.style.boxSizing = "border-box";
+  mobileControls.style.pointerEvents = "auto";
+  mobileControls.style.touchAction = "none";
   
   // Variables to store interval IDs
   let moveLeftInterval = null;
@@ -3330,7 +3439,10 @@ function setupMobileControls() {
     justifyContent: "center",
     alignItems: "center",
     userSelect: "none",
-    touchAction: "manipulation"
+    touchAction: "manipulation",
+    WebkitTapHighlightColor: "transparent",
+    WebkitTouchCallout: "none",
+    WebkitUserSelect: "none"
   };
   
   const leftBtn = document.createElement("div");
@@ -3340,6 +3452,7 @@ function setupMobileControls() {
   // Apply standardized styling to left button
   Object.assign(leftBtn.style, buttonStyle);
   
+  // Improved touch handling for left button
   leftBtn.addEventListener("touchstart", (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -3348,13 +3461,23 @@ function setupMobileControls() {
     leftBtn.style.backgroundColor = "rgba(41, 128, 185, 0.9)";
     leftBtn.style.transform = "scale(0.95)";
     
+    // Use vibration API if available for tactile feedback
+    if (navigator.vibrate) {
+      navigator.vibrate(20);
+    }
+    
     // Clear any existing intervals first
     if (moveLeftInterval) clearInterval(moveLeftInterval);
     if (moveRightInterval) clearInterval(moveRightInterval);
     
+    // Start moving immediately before interval kicks in
+    if (basket.x > 0 && !gameState.isPaused) {
+      basket.x -= basket.speed/2;
+    }
+    
     moveLeftInterval = setInterval(() => {
       if (basket.x > 0 && !gameState.isPaused) basket.x -= basket.speed/2;
-    }, 16);
+    }, 16); // Approximately 60fps
   });
   
   leftBtn.addEventListener("touchend", (e) => {
@@ -3391,6 +3514,7 @@ function setupMobileControls() {
   // Apply standardized styling to right button
   Object.assign(rightBtn.style, buttonStyle);
   
+  // Improved touch handling for right button
   rightBtn.addEventListener("touchstart", (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -3399,13 +3523,23 @@ function setupMobileControls() {
     rightBtn.style.backgroundColor = "rgba(41, 128, 185, 0.9)";
     rightBtn.style.transform = "scale(0.95)";
     
+    // Use vibration API if available for tactile feedback
+    if (navigator.vibrate) {
+      navigator.vibrate(20);
+    }
+    
     // Clear any existing intervals first
     if (moveRightInterval) clearInterval(moveRightInterval);
     if (moveLeftInterval) clearInterval(moveLeftInterval);
     
+    // Start moving immediately before interval kicks in
+    if (basket.x + basket.width < canvas.width && !gameState.isPaused) {
+      basket.x += basket.speed/2;
+    }
+    
     moveRightInterval = setInterval(() => {
       if (basket.x + basket.width < canvas.width && !gameState.isPaused) basket.x += basket.speed/2;
-    }, 16);
+    }, 16); // Approximately 60fps
   });
   
   rightBtn.addEventListener("touchend", (e) => {
@@ -3435,21 +3569,32 @@ function setupMobileControls() {
     }
   });
   
+  // Add buttons to controls
   mobileControls.appendChild(leftBtn);
   mobileControls.appendChild(rightBtn);
+  
+  // Add the mobile controls to the body
   document.body.appendChild(mobileControls);
   
-  // Add global touch handler to ensure all intervals are cleared if touch ends outside buttons
-  document.addEventListener("touchend", (e) => {
-    if (moveLeftInterval) {
-      clearInterval(moveLeftInterval);
-      moveLeftInterval = null;
+  // Position controls correctly based on current orientation
+  positionMobileControls();
+  
+  // Handle game state changes
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      // Game is in background, clear intervals
+      if (moveLeftInterval) {
+        clearInterval(moveLeftInterval);
+        moveLeftInterval = null;
+      }
+      if (moveRightInterval) {
+        clearInterval(moveRightInterval);
+        moveRightInterval = null;
+      }
     }
-    if (moveRightInterval) {
-      clearInterval(moveRightInterval);
-      moveRightInterval = null;
-    }
-  }, { passive: true });
+  });
+
+  return mobileControls;
 }
 
 // Add a test function that can be called from the console
@@ -4498,3 +4643,83 @@ function updatePseudoElementStyle(selector, cssText) {
   // Update the style content
   styleElement.innerHTML = `${selector} { ${cssText} }`;
 }
+
+// Function to properly initialize the game for the current device
+function initializeGameForDevice() {
+  // Force a resize to ensure proper canvas dimensions
+  resizeCanvas();
+  
+  // Check if we're on a mobile device and setup controls if needed
+  if ("ontouchstart" in window || navigator.maxTouchPoints > 0) {
+    const mobileControls = document.getElementById('mobileControls') || setupMobileControls();
+    mobileControls.style.display = "flex";
+    
+    // Add touch support for canvas
+    canvas.addEventListener('touchmove', touchMoveBasket, { passive: false });
+    canvas.addEventListener('touchstart', touchMoveBasket, { passive: false });
+    
+    // Show mobile instructions
+    if (document.getElementById("mobile-control-hint")) {
+      document.getElementById("mobile-control-hint").style.display = "inline-block";
+      document.getElementById("desktop-control-hint").style.display = "none";
+    }
+    
+    // Handle device orientation change
+    window.addEventListener('orientationchange', function() {
+      setTimeout(function() {
+        resizeCanvas();
+        positionMobileControls();
+        
+        // Ensure the basket stays in bounds after orientation change
+        if (basket) {
+          basket.x = Math.max(0, Math.min(canvas.width - basket.width, basket.x));
+        }
+      }, 300);
+    });
+    
+    // Improve scrolling and touch handling
+    document.addEventListener('touchmove', function(e) {
+      // Prevent scrolling if in game
+      if (gameState.gameActive && !gameState.isPaused) {
+        e.preventDefault();
+      }
+    }, { passive: false });
+  } else {
+    // Desktop specific handling if needed
+    document.getElementById("mobile-control-hint").style.display = "none";
+    document.getElementById("desktop-control-hint").style.display = "inline-block";
+  }
+  
+  // Check for low-performance devices
+  const isLowPerformance = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  
+  if (isLowPerformance) {
+    console.log("Low performance device detected, optimizing game");
+    // Reduce particle effects and animations
+    gameState.performanceMode = true;
+  }
+}
+
+// Call initialize function when DOM is ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initializeGameForDevice);
+} else {
+  initializeGameForDevice();
+}
+
+// Also call it when the options button is clicked
+document.addEventListener('DOMContentLoaded', function() {
+  const optionsBtn = document.getElementById('optionsBtn');
+  if (optionsBtn) {
+    optionsBtn.addEventListener('click', function() {
+      setTimeout(initializeGameForDevice, 100);
+    });
+  }
+  
+  const startGameBtn = document.getElementById('startGameBtn');
+  if (startGameBtn) {
+    startGameBtn.addEventListener('click', function() {
+      setTimeout(initializeGameForDevice, 100);
+    });
+  }
+});
