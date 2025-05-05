@@ -5,16 +5,13 @@ body {
   align-items: center;
   flex-direction: column;
   height: 100vh;
-  width: 100%;
   margin: 0;
   background: linear-gradient(135deg, #87CEEB, #3498db, #2980b9, #1abc9c);
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   overflow: hidden;
   background-size: 400% 400%;
   animation: gradientBG 15s ease infinite;
-  position: fixed;
-  top: 0;
-  left: 0;
+  position: relative;
 }
 
 @keyframes gradientBG {
@@ -56,8 +53,6 @@ canvas {
   border: 5px solid #3498db;
   transform-style: preserve-3d;
   perspective: 1000px;
-  z-index: 5;
-  position: relative;
 }
 
 #gameInterface {
@@ -67,7 +62,6 @@ canvas {
   width: 100%;
   z-index: 100;
   display: none;
-  pointer-events: none;
 }
 
 #score, #level, #lives, #powerup {
@@ -83,11 +77,10 @@ canvas {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   transform: translateZ(10px);
   transition: all 0.3s ease;
-  pointer-events: none;
 }
 
 #score { top: 10px; left: 10px; }
-#level { top: 50px; right: 10px; min-width: 80px; text-align: center; }
+#level { top: 60px; right: 10px; }
 #lives { top: 50px; left: 10px; }
 #powerup { top: 50px; right: 10px; }
 
@@ -102,7 +95,6 @@ canvas {
   border-radius: 10px;
   overflow: hidden;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-  pointer-events: none;
 }
 
 #progressBar {
@@ -174,11 +166,6 @@ canvas {
   display: none;
   margin-top: 15px;
   transition: transform 0.3s ease;
-  position: relative;
-  z-index: 50;
-  width: 100%;
-  justify-content: center;
-  align-items: center;
 }
 
 #intro {
@@ -199,7 +186,6 @@ canvas {
   max-width: 90%;
   position: relative;
   overflow: hidden;
-  z-index: 10;
 }
 
 /* 3D Title */
@@ -428,6 +414,7 @@ canvas {
 .fun-text:nth-child(2) { color: #e74c3c; }
 .fun-text:nth-child(3) { color: #9b59b6; }
 
+/* Add pulsating animation to control hints */
 .control-hint {
   margin-top: 15px;
   font-size: 16px;
@@ -436,6 +423,12 @@ canvas {
   padding: 5px 10px;
   border-radius: 8px;
   display: inline-block;
+  animation: pulsateHint 2s infinite alternate;
+}
+
+@keyframes pulsateHint {
+  0% { transform: scale(1); background-color: rgba(0,0,0,0.05); }
+  100% { transform: scale(1.1); background-color: rgba(52, 152, 219, 0.2); }
 }
 
 #mobile-control-hint {
@@ -543,151 +536,111 @@ p {
 /* Mobile-specific styles */
 @media (max-width: 500px) {
   body {
-    padding: 0;
-    position: fixed;
-    height: 100%;
-    width: 100%;
-    overflow: hidden;
+    padding: 10px;
   }
   
   canvas {
     max-width: 95%;
     margin: 0 auto;
-    margin-bottom: 70px; /* Make room for controls */
   }
   
   #intro, #gameOver, #levelUp {
     width: 90%;
     padding: 20px;
-    box-sizing: border-box;
+    background: rgba(255, 255, 255, 0.9);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(230, 240, 255, 0.95));
+    border: 3px solid #2980b9;
   }
   
   .button {
-    padding: 8px 16px;
-    font-size: 14px;
-    margin: 4px;
+    padding: 10px 20px;
+    font-size: 16px;
   }
   
   .title-3d {
-    font-size: 30px;
+    font-size: 32px;
   }
   
   h2 {
-    font-size: 22px;
+    font-size: 24px;
   }
 
   #score, #level, #lives, #powerup {
-    font-size: 12px;
-    padding: 3px 8px;
+    font-size: 16px;
+    padding: 4px 10px;
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0.9), rgba(240, 248, 255, 0.8));
+    border: 1px solid rgba(52, 152, 219, 0.3);
   }
   
   #score { top: 5px; left: 5px; }
-  #level { top: 28px; right: 5px; min-width: 60px; font-size: 11px; }
-  #lives { top: 28px; left: 5px; }
-  #powerup { top: 28px; right: 5px; }
+  #level { top: 5px; right: 5px; }
+  #lives { top: 40px; left: 5px; }
+  #powerup { top: 40px; right: 5px; }
   
   #progressContainer {
-    top: 52px; /* Lower the progress bar to avoid overlap */
-    width: 90%;
-    height: 8px;
-  }
-  
-  /* Special handling for speed controls on mobile */
-  #speedControls {
-    position: absolute !important;
-    top: 5px !important;
-    right: 80px !important; /* Position to prevent overlap with level */
-    transform: scale(0.8); /* Make it slightly smaller to fit */
-  }
-  
-  #speedControls button {
-    padding: 2px 6px !important;
-    font-size: 12px !important;
-  }
-  
-  #speedLabel {
-    font-size: 11px !important;
-    padding: 2px 4px !important;
-  }
-  
-  #controls {
-    position: fixed;
-    bottom: 10px;
-    left: 0;
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    background: rgba(255, 255, 255, 0.3);
-    border-top: 1px solid rgba(255, 255, 255, 0.5);
-    padding: 5px 0;
-    box-sizing: border-box;
-    width: 100%;
-    margin-top: 0;
-  }
-  
-  #controls button {
-    margin: 2px 4px;
-    padding: 6px 12px;
-    font-size: 12px;
+    top: 100px; /* Moved down to avoid overlapping */
+    width: 80%;
+    background: rgba(255, 255, 255, 0.7);
+    border: 1px solid rgba(52, 152, 219, 0.5);
   }
   
   .spinner {
-    transform: scale(0.7);
+    transform: scale(0.8);
   }
   
   .fun-text {
-    font-size: 15px;
-    margin: 6px 0;
+    font-size: 16px;
   }
   
   .wobble {
-    font-size: 16px;
-    padding: 10px 22px;
-  }
-
-  /* Make sure intro elements don't interfere with each other */
-  #simple-instructions {
-    margin: 10px 0;
+    font-size: 18px;
+    padding: 12px 25px;
   }
   
-  .control-hint {
-    font-size: 14px;
-    margin-top: 8px;
+  .floating-magnet {
+    font-size: 40px;
+    top: 60px;
+    right: 20px;
+  }
+  
+  .floating-star {
+    font-size: 24px;
+  }
+  
+  .corner-decor {
+    font-size: 20px;
   }
 }
 
 /* Touch controls for mobile */
 #mobileControls {
   position: fixed;
-  bottom: 60px; /* Position higher to avoid overlap with game controls */
-  left: 0;
-  right: 0;
+  bottom: 70px;
   width: 100%;
   display: flex;
   justify-content: space-between;
-  padding: 0 30px;
+  padding: 0 20px;
   box-sizing: border-box;
-  z-index: 90; /* Lower than game interface but higher than canvas */
-  pointer-events: none; /* This ensures clicks pass through the container but not the buttons */
+  z-index: 100;
+  pointer-events: auto;
 }
 
 .controlBtn {
-  width: 55px;
-  height: 55px;
-  background: rgba(52, 152, 219, 0.6);
+  width: 60px;
+  height: 60px;
+  background: rgba(52, 152, 219, 0.7);
   border-radius: 50%;
   display: flex;
   justify-content: center;
   align-items: center;
-  font-size: 22px;
-  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+  font-size: 24px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
   color: white;
   font-weight: bold;
   user-select: none;
   -webkit-user-select: none;
   -moz-user-select: none;
   touch-action: manipulation;
-  pointer-events: auto; /* Enable touch/click events on the buttons */
 }
 
 .controlBtn:active {
@@ -764,4 +717,177 @@ html, body {
 @keyframes pulsate {
   0% { transform: scale(1); }
   100% { transform: scale(1.2); }
+}
+
+/* Enhanced level complete animation with screen shake */
+@keyframes screenShake {
+  0%, 100% { transform: translateX(0) translateY(0); }
+  10% { transform: translateX(-15px) translateY(-8px); }
+  20% { transform: translateX(12px) translateY(6px); }
+  30% { transform: translateX(-10px) translateY(-5px); }
+  40% { transform: translateX(8px) translateY(4px); }
+  50% { transform: translateX(-6px) translateY(-3px); }
+  60% { transform: translateX(4px) translateY(2px); }
+  70% { transform: translateX(-2px) translateY(-1px); }
+  80% { transform: translateX(2px) translateY(0); }
+  90% { transform: translateX(0) translateY(2px); }
+}
+
+.shake-screen {
+  animation: screenShake 0.8s ease;
+}
+
+#levelUp {
+  background: linear-gradient(135deg, rgba(52, 152, 219, 0.95), rgba(41, 128, 185, 0.9));
+  border: 6px solid #3498db;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3), 
+              0 0 30px rgba(52, 152, 219, 0.6),
+              0 0 100px rgba(52, 152, 219, 0.4);
+  transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  color: white;
+  text-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+}
+
+#levelUp h2 {
+  color: white;
+  font-size: 32px;
+  margin-bottom: 20px;
+  text-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+  animation: pulsate 1.5s infinite alternate;
+}
+
+#levelUp p {
+  color: #ecf0f1;
+  font-size: 18px;
+  margin-bottom: 25px;
+}
+
+#nextLevelBtn {
+  background: linear-gradient(to bottom, #2ecc71, #27ae60);
+  color: white;
+  border: none;
+  padding: 15px 30px;
+  font-size: 20px;
+  border-radius: 30px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  transform: translateZ(5px);
+  transition: all 0.3s ease;
+  animation: buttonGlow 2s infinite alternate;
+}
+
+@keyframes buttonGlow {
+  0% { box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3); }
+  100% { box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3), 0 0 20px rgba(46, 204, 113, 0.7); }
+}
+
+#nextLevelBtn:hover {
+  background: linear-gradient(to bottom, #27ae60, #219d54);
+  transform: translateZ(5px) scale(1.05);
+}
+
+#levelUp.show {
+  transform: translateZ(70px) scale(1.1);
+  animation: celebrate 0.8s ease, glow 1.5s infinite alternate;
+}
+
+@keyframes glow {
+  0% { box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3), 
+                   0 0 50px rgba(52, 152, 219, 0.6),
+                   0 0 100px rgba(52, 152, 219, 0.4); }
+  100% { box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3), 
+                     0 0 80px rgba(52, 152, 219, 0.8),
+                     0 0 150px rgba(52, 152, 219, 0.6); }
+}
+
+/* Add confetti effect for level completion */
+.confetti {
+  position: fixed;
+  width: 15px;
+  height: 15px;
+  background-color: #f00;
+  z-index: 300;
+  animation: fall 4s linear forwards;
+  top: -20px;
+}
+
+@keyframes fall {
+  0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+  25% { opacity: 1; }
+  50% { opacity: 0.8; transform: translateY(50vh) rotate(180deg); }
+  100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
+}
+
+/* Add shapes to confetti */
+.confetti::before {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  transform: rotate(45deg);
+  background-color: inherit;
+  opacity: 0.7;
+}
+
+/* Add styles for enhanced camera shake effects */
+#flashOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: white;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease-out;
+  z-index: 1000;
+}
+
+/* Enhanced level complete animations */
+@keyframes dramatic-pulse {
+  0% { transform: scale(1); box-shadow: 0 0 0 rgba(52, 152, 219, 0); }
+  50% { transform: scale(1.08); box-shadow: 0 0 50px rgba(52, 152, 219, 0.8); }
+  100% { transform: scale(1); box-shadow: 0 0 0 rgba(52, 152, 219, 0); }
+}
+
+.dramatic-pulse {
+  animation: dramatic-pulse 1.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) infinite;
+}
+
+/* Enhanced wave effect */
+@keyframes wave-motion {
+  0% { transform: translateY(0) rotate(0deg); }
+  25% { transform: translateY(-15px) rotate(2deg); }
+  50% { transform: translateY(0) rotate(0deg); }
+  75% { transform: translateY(10px) rotate(-2deg); }
+  100% { transform: translateY(0) rotate(0deg); }
+}
+
+.wave-motion {
+  animation: wave-motion 3s ease-in-out infinite;
+}
+
+/* More intense rotation for the confetti */
+@keyframes intense-rotation {
+  0% { transform: rotate(0deg) scale(1); }
+  50% { transform: rotate(180deg) scale(1.2); }
+  100% { transform: rotate(360deg) scale(1); }
+}
+
+.intense-rotate {
+  animation: intense-rotation 1.5s linear infinite;
+}
+
+/* Blur effect for transitioning between states */
+.transition-blur {
+  transition: filter 0.5s ease-out;
+  filter: blur(0);
+}
+
+.transition-blur.active {
+  filter: blur(5px);
+}
+
+/* Canvas transitions */
+#gameCanvas {
+  transition: transform 0.3s ease, filter 0.3s ease;
 } 
