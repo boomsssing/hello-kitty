@@ -802,13 +802,12 @@ function drawBasket() {
     case 'cute':
       drawCuteBasket();
       break;
-    case 'crystal':
-      drawCrystalBasket();
+    case 'box':
+      drawBoxBasket();
       break;
-    case 'fire':
-      drawFireBasket();
+    case 'hat':
+      drawHatBasket();
       break;
-    case 'classic':
     default:
       drawClassicBasket();
       break;
@@ -1050,164 +1049,120 @@ function drawCuteBasket() {
   ctx.fill();
 }
 
-// Crystal basket style
-function drawCrystalBasket() {
-  const baseColor = basket.powerupActive ? getPowerupBasketColor() : "#A5F2F3";
-  const accentColor = basket.powerupActive ? getLighterPowerupColor() : "#D3FBFC";
-  const darkColor = basket.powerupActive ? getDarkerPowerupColor() : "#66A6A7";
+// Box basket style
+function drawBoxBasket() {
+  const baseColor = basket.powerupActive ? getPowerupBasketColor() : "#A67C52";
+  const accentColor = basket.powerupActive ? getLighterPowerupColor() : "#C69C6D";
+  const darkColor = basket.powerupActive ? getDarkerPowerupColor() : "#7D5A3C";
   
-  // Crystal base
+  // Main box
   ctx.fillStyle = baseColor;
-  ctx.beginPath();
-  ctx.moveTo(-basket.width/2, basket.height/4);
-  ctx.lineTo(-basket.width/3, -basket.height/2);
-  ctx.lineTo(basket.width/3, -basket.height/2);
-  ctx.lineTo(basket.width/2, basket.height/4);
-  ctx.lineTo(basket.width/3, basket.height/2);
-  ctx.lineTo(-basket.width/3, basket.height/2);
-  ctx.closePath();
-  ctx.fill();
+  ctx.fillRect(-basket.width/2, -basket.height/2, basket.width, basket.height);
   
-  // Crystal face highlights
+  // Box top flaps
   ctx.fillStyle = accentColor;
-  ctx.globalAlpha = 0.7;
   
-  // Left face
+  // Left flap
   ctx.beginPath();
-  ctx.moveTo(-basket.width/2, basket.height/4);
-  ctx.lineTo(-basket.width/3, -basket.height/2);
-  ctx.lineTo(-basket.width/6, -basket.height/4);
-  ctx.lineTo(-basket.width/4, basket.height/3);
+  ctx.moveTo(-basket.width/2, -basket.height/2);
+  ctx.lineTo(-basket.width/6, -basket.height/2 - basket.height/4);
+  ctx.lineTo(0, -basket.height/2);
+  ctx.lineTo(-basket.width/2, -basket.height/2);
   ctx.closePath();
   ctx.fill();
   
-  // Right face
+  // Right flap
   ctx.beginPath();
-  ctx.moveTo(basket.width/2, basket.height/4);
-  ctx.lineTo(basket.width/3, -basket.height/2);
-  ctx.lineTo(basket.width/6, -basket.height/4);
-  ctx.lineTo(basket.width/4, basket.height/3);
+  ctx.moveTo(basket.width/2, -basket.height/2);
+  ctx.lineTo(basket.width/6, -basket.height/2 - basket.height/4);
+  ctx.lineTo(0, -basket.height/2);
+  ctx.lineTo(basket.width/2, -basket.height/2);
   ctx.closePath();
   ctx.fill();
   
-  ctx.globalAlpha = 1.0;
-  
-  // Crystal edges
+  // Box details - tape
   ctx.strokeStyle = darkColor;
-  ctx.lineWidth = 2;
+  ctx.lineWidth = 4;
+  
+  // Horizontal tape
   ctx.beginPath();
-  ctx.moveTo(-basket.width/2, basket.height/4);
-  ctx.lineTo(-basket.width/3, -basket.height/2);
-  ctx.lineTo(basket.width/3, -basket.height/2);
-  ctx.lineTo(basket.width/2, basket.height/4);
-  ctx.lineTo(basket.width/3, basket.height/2);
-  ctx.lineTo(-basket.width/3, basket.height/2);
-  ctx.closePath();
+  ctx.moveTo(-basket.width/2, 0);
+  ctx.lineTo(basket.width/2, 0);
   ctx.stroke();
   
-  // Inner basin for catching
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+  // Vertical tape
   ctx.beginPath();
-  ctx.ellipse(0, basket.height/6, basket.width/3, basket.height/4, 0, 0, Math.PI * 2);
-  ctx.fill();
+  ctx.moveTo(0, -basket.height/2);
+  ctx.lineTo(0, basket.height/2);
+  ctx.stroke();
   
-  // Sparkle effects
-  const sparkleColor = basket.powerupActive ? getLighterPowerupColor() : 'rgba(255, 255, 255, 0.9)';
+  // Box inner shadow for depth
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+  ctx.fillRect(-basket.width/2 + 5, -basket.height/2 + 5, basket.width - 10, basket.height - 10);
   
-  function drawSparkle(x, y, size) {
-    ctx.fillStyle = sparkleColor;
-    ctx.beginPath();
-    ctx.moveTo(x, y - size);
-    ctx.lineTo(x + size/3, y - size/3);
-    ctx.lineTo(x + size, y);
-    ctx.lineTo(x + size/3, y + size/3);
-    ctx.lineTo(x, y + size);
-    ctx.lineTo(x - size/3, y + size/3);
-    ctx.lineTo(x - size, y);
-    ctx.lineTo(x - size/3, y - size/3);
-    ctx.closePath();
-    ctx.fill();
-  }
+  // Box edge highlights
+  ctx.strokeStyle = accentColor;
+  ctx.lineWidth = 2;
+  ctx.strokeRect(-basket.width/2, -basket.height/2, basket.width, basket.height);
   
-  // Add random sparkles
-  const sparkleCount = basket.powerupActive ? 5 : 3;
-  for (let i = 0; i < sparkleCount; i++) {
-    const sparkleX = (Math.random() - 0.5) * basket.width * 0.8;
-    const sparkleY = (Math.random() - 0.5) * basket.height * 0.8;
-    const sparkleSize = Math.random() * 5 + 3;
-    drawSparkle(sparkleX, sparkleY, sparkleSize);
-  }
+  // Optional box label
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+  ctx.font = Math.floor(basket.width/10) + 'px Arial';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText("CATCH", 0, basket.height/4);
 }
 
-// Fire basket style
-function drawFireBasket() {
-  const baseColor = basket.powerupActive ? getPowerupBasketColor() : "#FF5E3A";
-  const accentColor = basket.powerupActive ? getLighterPowerupColor() : "#FF9500";
-  const darkColor = basket.powerupActive ? getDarkerPowerupColor() : "#CD2A12";
+// Hat basket style
+function drawHatBasket() {
+  const baseColor = basket.powerupActive ? getPowerupBasketColor() : "#2C3E50";
+  const accentColor = basket.powerupActive ? getLighterPowerupColor() : "#34495E";
+  const darkColor = basket.powerupActive ? getDarkerPowerupColor() : "#1B2631";
   
-  // Main bowl shape
+  // Hat brim
   ctx.fillStyle = baseColor;
   ctx.beginPath();
-  ctx.moveTo(-basket.width/2, 0);
-  ctx.quadraticCurveTo(-basket.width/2, basket.height/2, 0, basket.height/2);
-  ctx.quadraticCurveTo(basket.width/2, basket.height/2, basket.width/2, 0);
-  ctx.quadraticCurveTo(basket.width/2.5, -basket.height/3, 0, -basket.height/3);
-  ctx.quadraticCurveTo(-basket.width/2.5, -basket.height/3, -basket.width/2, 0);
+  ctx.ellipse(0, basket.height/3, basket.width/2, basket.height/6, 0, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Hat body (cylinder)
+  ctx.fillStyle = baseColor;
+  ctx.beginPath();
+  ctx.ellipse(0, -basket.height/3, basket.width/3, basket.height/10, 0, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Connect the top and bottom of hat
+  ctx.beginPath();
+  ctx.moveTo(-basket.width/3, -basket.height/3);
+  ctx.lineTo(-basket.width/3, basket.height/3);
+  ctx.lineTo(basket.width/3, basket.height/3);
+  ctx.lineTo(basket.width/3, -basket.height/3);
   ctx.closePath();
   ctx.fill();
   
-  // Flames on the sides
-  function drawFlame(x, y, height, width, rotation = 0) {
-    ctx.save();
-    ctx.translate(x, y);
-    ctx.rotate(rotation);
-    
-    const gradient = ctx.createLinearGradient(0, 0, 0, -height);
-    gradient.addColorStop(0, accentColor);
-    gradient.addColorStop(0.5, baseColor);
-    gradient.addColorStop(1, "rgba(255, 255, 0, 0.7)");
-    
-    ctx.fillStyle = gradient;
-    
-    // Draw flame shape
-    ctx.beginPath();
-    ctx.moveTo(-width/2, 0);
-    ctx.quadraticCurveTo(-width/4, -height/3, -width/3, -height/2);
-    ctx.quadraticCurveTo(-width/6, -height*2/3, 0, -height);
-    ctx.quadraticCurveTo(width/6, -height*2/3, width/3, -height/2);
-    ctx.quadraticCurveTo(width/4, -height/3, width/2, 0);
-    ctx.closePath();
-    ctx.fill();
-    
-    ctx.restore();
-  }
-  
-  // Draw several flames
-  const flameCount = 5;
-  const time = performance.now() / 1000;
-  
-  for (let i = 0; i < flameCount; i++) {
-    const position = (i / (flameCount - 1)) * basket.width - basket.width/2;
-    const height = (Math.sin(time * 3 + i) * 0.2 + 0.8) * basket.height/2;
-    const width = basket.width / (flameCount + 1);
-    const rotation = Math.sin(time * 2 + i * 2) * 0.15;
-    
-    drawFlame(position, -basket.height/6, height, width, rotation);
-  }
-  
-  // Inner bowl for catching
-  ctx.fillStyle = darkColor;
+  // Hat band
+  ctx.fillStyle = accentColor;
   ctx.beginPath();
-  ctx.ellipse(0, basket.height/6, basket.width/3, basket.height/5, 0, 0, Math.PI * 2);
+  ctx.rect(-basket.width/3, -basket.height/6, basket.width*2/3, basket.height/10);
   ctx.fill();
   
-  // Add metallic rim
-  ctx.strokeStyle = '#FFC107';
-  ctx.lineWidth = 3;
+  // Hat band decoration
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
   ctx.beginPath();
-  ctx.moveTo(-basket.width/2, 0);
-  ctx.quadraticCurveTo(-basket.width/2, basket.height/2, 0, basket.height/2);
-  ctx.quadraticCurveTo(basket.width/2, basket.height/2, basket.width/2, 0);
+  ctx.ellipse(basket.width/6, -basket.height/6 + basket.height/20, basket.width/12, basket.height/20, 0, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Inside of the hat (hollow for catching)
+  ctx.fillStyle = darkColor;
+  ctx.beginPath();
+  ctx.ellipse(0, -basket.height/3, basket.width/4, basket.height/12, 0, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Hat shine effect
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.ellipse(0, -basket.height/3, basket.width/3.5, basket.height/11, 0, Math.PI * 0.3, Math.PI * 0.7);
   ctx.stroke();
 }
 
@@ -2933,7 +2888,14 @@ function startGame() {
   basket.powerupActive = false;
   
   // Set basket style based on user selection
-  basket.style = localStorage.getItem('gameBasket') || 'classic';
+  const basketStyle = localStorage.getItem('gameBasket') || 'classic';
+  basket.style = basketStyle;
+  
+  // Update basket colors based on selected style
+  const basketOption = basketOptions.find(b => b.id === basketStyle) || basketOptions[0];
+  basket.color = basketOption.baseColor;
+  basket.secondaryColor = basketOption.secondaryColor;
+  basket.tertiaryColor = basketOption.tertiaryColor;
   
   // Reset UI
   updateUI();
@@ -3052,8 +3014,13 @@ function startGame() {
     applyTheme(customizations.theme);
   }
   
-  // Set basket style
-  basket.style = customizations.basketStyle || 'classic';
+  // Ensure basket style and colors are set correctly
+  const savedBasketStyle = customizations.basketStyle || 'classic';
+  basket.style = savedBasketStyle;
+  const savedBasketOption = basketOptions.find(b => b.id === savedBasketStyle) || basketOptions[0];
+  basket.color = savedBasketOption.baseColor;
+  basket.secondaryColor = savedBasketOption.secondaryColor;
+  basket.tertiaryColor = savedBasketOption.tertiaryColor;
 }
 
 // Restart the game
@@ -4048,7 +4015,12 @@ function drawBasket() {
     case 'cute':
       drawCuteBasket();
       break;
-    case 'classic':
+    case 'box':
+      drawBoxBasket();
+      break;
+    case 'hat':
+      drawHatBasket();
+      break;
     default:
       drawClassicBasket();
       break;
@@ -4290,6 +4262,123 @@ function drawCuteBasket() {
   ctx.fill();
 }
 
+// Box basket style
+function drawBoxBasket() {
+  const baseColor = basket.powerupActive ? getPowerupBasketColor() : "#A67C52";
+  const accentColor = basket.powerupActive ? getLighterPowerupColor() : "#C69C6D";
+  const darkColor = basket.powerupActive ? getDarkerPowerupColor() : "#7D5A3C";
+  
+  // Main box
+  ctx.fillStyle = baseColor;
+  ctx.fillRect(-basket.width/2, -basket.height/2, basket.width, basket.height);
+  
+  // Box top flaps
+  ctx.fillStyle = accentColor;
+  
+  // Left flap
+  ctx.beginPath();
+  ctx.moveTo(-basket.width/2, -basket.height/2);
+  ctx.lineTo(-basket.width/6, -basket.height/2 - basket.height/4);
+  ctx.lineTo(0, -basket.height/2);
+  ctx.lineTo(-basket.width/2, -basket.height/2);
+  ctx.closePath();
+  ctx.fill();
+  
+  // Right flap
+  ctx.beginPath();
+  ctx.moveTo(basket.width/2, -basket.height/2);
+  ctx.lineTo(basket.width/6, -basket.height/2 - basket.height/4);
+  ctx.lineTo(0, -basket.height/2);
+  ctx.lineTo(basket.width/2, -basket.height/2);
+  ctx.closePath();
+  ctx.fill();
+  
+  // Box details - tape
+  ctx.strokeStyle = darkColor;
+  ctx.lineWidth = 4;
+  
+  // Horizontal tape
+  ctx.beginPath();
+  ctx.moveTo(-basket.width/2, 0);
+  ctx.lineTo(basket.width/2, 0);
+  ctx.stroke();
+  
+  // Vertical tape
+  ctx.beginPath();
+  ctx.moveTo(0, -basket.height/2);
+  ctx.lineTo(0, basket.height/2);
+  ctx.stroke();
+  
+  // Box inner shadow for depth
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+  ctx.fillRect(-basket.width/2 + 5, -basket.height/2 + 5, basket.width - 10, basket.height - 10);
+  
+  // Box edge highlights
+  ctx.strokeStyle = accentColor;
+  ctx.lineWidth = 2;
+  ctx.strokeRect(-basket.width/2, -basket.height/2, basket.width, basket.height);
+  
+  // Optional box label
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+  ctx.font = Math.floor(basket.width/10) + 'px Arial';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText("CATCH", 0, basket.height/4);
+}
+
+// Hat basket style
+function drawHatBasket() {
+  const baseColor = basket.powerupActive ? getPowerupBasketColor() : "#2C3E50";
+  const accentColor = basket.powerupActive ? getLighterPowerupColor() : "#34495E";
+  const darkColor = basket.powerupActive ? getDarkerPowerupColor() : "#1B2631";
+  
+  // Hat brim
+  ctx.fillStyle = baseColor;
+  ctx.beginPath();
+  ctx.ellipse(0, basket.height/3, basket.width/2, basket.height/6, 0, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Hat body (cylinder)
+  ctx.fillStyle = baseColor;
+  ctx.beginPath();
+  ctx.ellipse(0, -basket.height/3, basket.width/3, basket.height/10, 0, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Connect the top and bottom of hat
+  ctx.beginPath();
+  ctx.moveTo(-basket.width/3, -basket.height/3);
+  ctx.lineTo(-basket.width/3, basket.height/3);
+  ctx.lineTo(basket.width/3, basket.height/3);
+  ctx.lineTo(basket.width/3, -basket.height/3);
+  ctx.closePath();
+  ctx.fill();
+  
+  // Hat band
+  ctx.fillStyle = accentColor;
+  ctx.beginPath();
+  ctx.rect(-basket.width/3, -basket.height/6, basket.width*2/3, basket.height/10);
+  ctx.fill();
+  
+  // Hat band decoration
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+  ctx.beginPath();
+  ctx.ellipse(basket.width/6, -basket.height/6 + basket.height/20, basket.width/12, basket.height/20, 0, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Inside of the hat (hollow for catching)
+  ctx.fillStyle = darkColor;
+  ctx.beginPath();
+  ctx.ellipse(0, -basket.height/3, basket.width/4, basket.height/12, 0, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Hat shine effect
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.ellipse(0, -basket.height/3, basket.width/3.5, basket.height/11, 0, Math.PI * 0.3, Math.PI * 0.7);
+  ctx.stroke();
+}
+
 // Helper function to get color based on active powerup
 function getPowerupBasketColor() {
   if (gameState.hasActivePowerup && gameState.activePowerupType) {
@@ -4319,40 +4408,93 @@ function getDarkerPowerupColor() {
 
 // Function to apply the selected theme
 function applyTheme(theme) {
-  let background, particleColors;
-  
-  switch(theme) {
-    case 'ocean':
-      background = {
-        gradient: 'linear-gradient(45deg, #141E30, #243B55, #0575E6)',
-        stars: 'rgba(255, 255, 255, 0.8)'
-      };
-      particleColors = ['#2980b9', '#3498db', '#1abc9c', '#16a085'];
-      break;
-    case 'forest':
-      background = {
-        gradient: 'linear-gradient(45deg, #134E5E, #71B280, #2C5364)',
-        stars: 'rgba(255, 255, 255, 0.7)'
-      };
-      particleColors = ['#27ae60', '#2ecc71', '#f1c40f', '#f39c12'];
-      break;
-    case 'space':
-    default:
-      background = {
-        gradient: 'linear-gradient(45deg, #1a2a6c, #b21f1f, #fdbb2d)',
-        stars: 'rgba(255, 255, 255, 0.8)'
-      };
-      particleColors = ['#e74c3c', '#3498db', '#f1c40f', '#9b59b6'];
-      break;
+  // If options.js has loaded and defined themeOptions, use that implementation
+  if (typeof window.applyTheme === 'function' && window.applyTheme !== applyTheme) {
+    return window.applyTheme(theme);
   }
   
+  // Get the theme definition from options.js
+  const themeOption = (typeof themeOptions !== 'undefined' && themeOptions) 
+    ? themeOptions.find(t => t.id === theme) || themeOptions[0]
+    : {
+        id: theme,
+        gradient: theme === 'ocean' 
+          ? 'linear-gradient(45deg, #141E30, #243B55, #0575E6)' 
+          : theme === 'forest' 
+            ? 'linear-gradient(45deg, #134E5E, #71B280, #2C5364)'
+            : theme === 'sunset'
+              ? 'linear-gradient(45deg, #f12711, #f5af19, #FF8008)'
+              : theme === 'neon'
+                ? 'linear-gradient(45deg, #0a0047, #490066, #8E2DE2)'
+                : 'linear-gradient(45deg, #1a2a6c, #b21f1f, #fdbb2d)',
+        stars: 'rgba(255, 255, 255, 0.8)',
+        nebulaColors: 'radial-gradient(circle at 20% 35%, rgba(142, 68, 173, 0.2) 0%, transparent 40%), radial-gradient(circle at 80% 20%, rgba(41, 128, 185, 0.2) 0%, transparent 40%), radial-gradient(circle at 50% 80%, rgba(192, 57, 43, 0.2) 0%, transparent 50%)'
+      };
+  
   // Apply the gradient to the body
-  document.body.style.background = background.gradient;
+  document.body.style.background = themeOption.gradient;
+  document.body.style.backgroundSize = '400% 400%';
   
-  // You could also update star colors, particle colors, etc.
-  // but that would require more extensive modifications
+  // Update stars (parallax background)
+  const starsStyle = `
+    radial-gradient(2px 2px at 20% 30%, ${themeOption.stars} 0%, transparent 100%),
+    radial-gradient(2px 2px at 40% 70%, ${themeOption.stars} 0%, transparent 100%),
+    radial-gradient(3px 3px at 50% 15%, ${themeOption.stars} 0%, transparent 100%),
+    radial-gradient(2px 2px at 60% 50%, ${themeOption.stars} 0%, transparent 100%),
+    radial-gradient(3px 3px at 70% 90%, ${themeOption.stars} 0%, transparent 100%),
+    radial-gradient(2px 2px at 85% 25%, ${themeOption.stars} 0%, transparent 100%),
+    radial-gradient(3px 3px at 90% 65%, ${themeOption.stars} 0%, transparent 100%)
+  `;
   
-  return background;
+  // Update the body::before (stars background)
+  updatePseudoElementStyle('body::before', `
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: ${starsStyle};
+    background-repeat: repeat;
+    background-size: 500px 500px;
+    transform: translateZ(0);
+    animation: movingStars 60s linear infinite;
+    z-index: -1;
+  `);
+  
+  // Update nebula overlay
+  updatePseudoElementStyle('body::after', `
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: ${themeOption.nebulaColors};
+    mix-blend-mode: screen;
+    z-index: -1;
+    animation: nebulaMove 30s ease infinite alternate;
+  `);
+  
+  // Store the chosen theme
+  localStorage.setItem('gameTheme', theme);
+  customizations.theme = theme;
+  
+  return themeOption;
 }
 
-// ... rest of the existing code ...
+// Helper function to update pseudo element styles
+function updatePseudoElementStyle(selector, cssText) {
+  // Check if a style for this selector already exists
+  let styleElement = document.getElementById(`style-${selector.replace(/[^a-z0-9]/gi, '')}`);
+  
+  if (!styleElement) {
+    // Create a new style element if it doesn't exist
+    styleElement = document.createElement('style');
+    styleElement.id = `style-${selector.replace(/[^a-z0-9]/gi, '')}`;
+    document.head.appendChild(styleElement);
+  }
+  
+  // Update the style content
+  styleElement.innerHTML = `${selector} { ${cssText} }`;
+}

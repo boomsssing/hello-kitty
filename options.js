@@ -74,20 +74,20 @@ const basketOptions = [
     tertiaryColor: '#8B5A2B'
   },
   {
-    id: 'crystal',
-    name: 'Crystal',
-    emoji: '💎',
-    baseColor: '#A5F2F3',
-    secondaryColor: '#D3FBFC',
-    tertiaryColor: '#66A6A7'
+    id: 'box',
+    name: 'Box',
+    emoji: '📦',
+    baseColor: '#A67C52',
+    secondaryColor: '#C69C6D',
+    tertiaryColor: '#7D5A3C'
   },
   {
-    id: 'fire',
-    name: 'Fire',
-    emoji: '🔥',
-    baseColor: '#FF5E3A',
-    secondaryColor: '#FF9500',
-    tertiaryColor: '#CD2A12'
+    id: 'hat',
+    name: 'Hat',
+    emoji: '🎩',
+    baseColor: '#2C3E50',
+    secondaryColor: '#34495E',
+    tertiaryColor: '#1B2631'
   }
 ];
 
@@ -143,15 +143,36 @@ function applyTheme(themeId) {
   // Store the selected theme in localStorage
   localStorage.setItem('gameTheme', themeId);
   
+  // Update customizations object if it exists
+  if (typeof customizations !== 'undefined') {
+    customizations.theme = themeId;
+  }
+  
   return theme;
 }
+
+// Make the function globally available
+window.applyTheme = applyTheme;
 
 // Apply basket style
 function applyBasketStyle(styleId) {
   const style = basketOptions.find(s => s.id === styleId) || basketOptions[0];
   
+  // Update basket colors immediately if the basket object exists
+  if (typeof basket !== 'undefined') {
+    basket.style = styleId;
+    basket.color = style.baseColor;
+    basket.secondaryColor = style.secondaryColor;
+    basket.tertiaryColor = style.tertiaryColor;
+  }
+  
   // Store the selected basket style in localStorage
   localStorage.setItem('gameBasket', styleId);
+  
+  // Update customizations object if it exists
+  if (typeof customizations !== 'undefined') {
+    customizations.basketStyle = styleId;
+  }
   
   return style;
 }
@@ -248,23 +269,25 @@ function initializeOptions() {
   applyTheme(savedTheme);
 }
 
-// Initialize when DOM is ready
+// Initialize event listeners for options screen
 document.addEventListener('DOMContentLoaded', function() {
-  // Initialize options
+  // Initialize options when DOM is loaded
   initializeOptions();
   
-  // Setup event listeners for options screen
+  // Open options screen when ENTER GAME is clicked
   const optionsBtn = document.getElementById('optionsBtn');
-  const startGameBtn = document.getElementById('startGameBtn');
-  const backToIntroBtn = document.getElementById('backToIntroBtn');
-  
   if (optionsBtn) {
     optionsBtn.addEventListener('click', function() {
       document.getElementById('intro').style.display = 'none';
       document.getElementById('optionsScreen').style.display = 'flex';
+      
+      // Initialize options again in case they weren't loaded yet
+      initializeOptions();
     });
   }
   
+  // Go back to intro screen
+  const backToIntroBtn = document.getElementById('backToIntroBtn');
   if (backToIntroBtn) {
     backToIntroBtn.addEventListener('click', function() {
       document.getElementById('optionsScreen').style.display = 'none';
@@ -272,16 +295,15 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
   
+  // Start game after selecting options
+  const startGameBtn = document.getElementById('startGameBtn');
   if (startGameBtn) {
     startGameBtn.addEventListener('click', function() {
       document.getElementById('optionsScreen').style.display = 'none';
+      
+      // Start the game
       if (typeof startGame === 'function') {
         startGame();
-      } else {
-        // Fallback if startGame function isn't available
-        document.getElementById('gameInterface').style.display = 'block';
-        document.getElementById('gameCanvas').style.display = 'block';
-        document.getElementById('controls').style.display = 'flex';
       }
     });
   }
