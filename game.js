@@ -6,6 +6,7 @@ const controls = document.getElementById("controls");
 const gameInterface = document.getElementById("gameInterface");
 const levelUpScreen = document.getElementById("levelUp");
 const gameOverScreen = document.getElementById("gameOver");
+const optionsScreen = document.getElementById("optionsScreen");
 
 // Add screen shake variables
 let screenShake = {
@@ -143,6 +144,12 @@ const levelConfig = [
   }
 ];
 
+// User customization options
+const customizations = {
+  basketStyle: localStorage.getItem('gameBasket') || 'classic',
+  theme: localStorage.getItem('gameTheme') || 'space'
+};
+
 // Basket properties with 3D effect
 const basket = { 
   x: 170, 
@@ -156,7 +163,8 @@ const basket = {
   secondaryColor: "#2980b9",
   tertiaryColor: "#1a5276",
   powerupActive: false,
-  damageFlash: false // Added damage flash effect
+  damageFlash: false, // Added damage flash effect
+  style: customizations.basketStyle || 'classic' // Add basket style property
 };
 
 // Expanded item types with more variety
@@ -780,317 +788,452 @@ function drawBackground() {
   }
 }
 
-// Draw basket with enhanced 3D effect
+// Modified drawBasket function to handle different basket styles
 function drawBasket() {
-  const shadowOffset = 5;
-  const basketDepth = 15;
-  const glowIntensity = gameState.hasActivePowerup ? 15 : 0;
+  ctx.save();
+  ctx.translate(basket.x + basket.width / 2, basket.y + basket.height / 2);
+  ctx.rotate(basket.rotation);
   
-  // First draw the shadow basket if doubleTrouble is active
-  if (gameState.hasActivePowerup && gameState.activePowerupType === "doubleTrouble" && gameState.shadowBasket) {
-    const shadowBasket = gameState.shadowBasket;
-    
-    // Update shadow basket position to follow main basket with offset
-    const targetOffsetX = -60; // Target offset from main basket
-    const targetOffsetY = -40;
-    
-    // Smooth movement for shadow basket (easing)
-    shadowBasket.offsetX += (targetOffsetX - shadowBasket.offsetX) * 0.1;
-    shadowBasket.offsetY += (targetOffsetY - shadowBasket.offsetY) * 0.1;
-    
-    // Draw the shadow basket
-    // Shadow
-    ctx.fillStyle = "rgba(0, 0, 0, 0.3)";
-    ctx.beginPath();
-    ctx.moveTo(basket.x + shadowBasket.offsetX + shadowOffset, basket.y + shadowBasket.offsetY + shadowOffset);
-    ctx.lineTo(basket.x + shadowBasket.width + shadowBasket.offsetX + shadowOffset, basket.y + shadowBasket.offsetY + shadowOffset);
-    ctx.lineTo(basket.x + shadowBasket.width + shadowBasket.offsetX + shadowOffset, basket.y + shadowBasket.height + shadowBasket.offsetY + shadowOffset);
-    ctx.lineTo(basket.x + shadowBasket.offsetX + shadowOffset, basket.y + shadowBasket.height + shadowBasket.offsetY + shadowOffset);
-    ctx.closePath();
-    ctx.fill();
-    
-    // Right side - darker
-    ctx.fillStyle = shadowBasket.tertiaryColor;
-    ctx.beginPath();
-    ctx.moveTo(basket.x + shadowBasket.width + shadowBasket.offsetX, basket.y + shadowBasket.offsetY);
-    ctx.lineTo(basket.x + shadowBasket.width + basketDepth + shadowBasket.offsetX, basket.y + basketDepth + shadowBasket.offsetY);
-    ctx.lineTo(basket.x + shadowBasket.width + basketDepth + shadowBasket.offsetX, basket.y + shadowBasket.height + basketDepth + shadowBasket.offsetY);
-    ctx.lineTo(basket.x + shadowBasket.width + shadowBasket.offsetX, basket.y + shadowBasket.height + shadowBasket.offsetY);
-    ctx.closePath();
-    ctx.fill();
-    
-    // Bottom side
-    ctx.fillStyle = darkenColor(shadowBasket.color, 30);
-    ctx.beginPath();
-    ctx.moveTo(basket.x + shadowBasket.offsetX, basket.y + shadowBasket.height + shadowBasket.offsetY);
-    ctx.lineTo(basket.x + basketDepth + shadowBasket.offsetX, basket.y + shadowBasket.height + basketDepth + shadowBasket.offsetY);
-    ctx.lineTo(basket.x + shadowBasket.width + basketDepth + shadowBasket.offsetX, basket.y + shadowBasket.height + basketDepth + shadowBasket.offsetY);
-    ctx.lineTo(basket.x + shadowBasket.width + shadowBasket.offsetX, basket.y + shadowBasket.height + shadowBasket.offsetY);
-    ctx.closePath();
-    ctx.fill();
-    
-    // Main basket face with metallic gradient
-    const basketGradient = ctx.createLinearGradient(
-      basket.x + shadowBasket.offsetX, basket.y + shadowBasket.offsetY, 
-      basket.x + shadowBasket.width + shadowBasket.offsetX, basket.y + shadowBasket.height + shadowBasket.offsetY
-    );
-    
-    basketGradient.addColorStop(0, lightenColor(shadowBasket.color, 20));
-    basketGradient.addColorStop(0.5, shadowBasket.color);
-    basketGradient.addColorStop(1, darkenColor(shadowBasket.color, 20));
-    
-    // Add glow effect
-    ctx.shadowColor = shadowBasket.color;
-    ctx.shadowBlur = glowIntensity;
-    
-    ctx.fillStyle = basketGradient;
-    ctx.fillRect(
-      basket.x + shadowBasket.offsetX, 
-      basket.y + shadowBasket.offsetY, 
-      shadowBasket.width, 
-      shadowBasket.height
-    );
-    
-    // Reset shadow
-    ctx.shadowBlur = 0;
-    
-    // Top rim - lighter
-    ctx.fillStyle = lightenColor(shadowBasket.color, 20);
-    ctx.fillRect(
-      basket.x + shadowBasket.offsetX, 
-      basket.y + shadowBasket.offsetY, 
-      shadowBasket.width, 10
-    );
-    
-    // Basket pattern
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.7)";
-    ctx.lineWidth = 2;
-    
-    // Vertical lines with perspective
-    for (let i = 1; i < 4; i++) {
-      const x = basket.x + shadowBasket.offsetX + (shadowBasket.width / 4) * i;
-      ctx.beginPath();
-      ctx.moveTo(x, basket.y + shadowBasket.offsetY);
-      ctx.lineTo(x, basket.y + shadowBasket.height + shadowBasket.offsetY);
-      // Add perspective lines to rim
-      ctx.moveTo(x, basket.y + shadowBasket.offsetY);
-      ctx.lineTo(x + basketDepth/2, basket.y + basketDepth/2 + shadowBasket.offsetY);
-      ctx.stroke();
-    }
-    
-    // Horizontal line with perspective
-    const midY = basket.y + shadowBasket.height/2 + shadowBasket.offsetY;
-    ctx.beginPath();
-    ctx.moveTo(basket.x + shadowBasket.offsetX, midY);
-    ctx.lineTo(basket.x + shadowBasket.width + shadowBasket.offsetX, midY);
-    // Add perspective line to right side
-    ctx.moveTo(basket.x + shadowBasket.width + shadowBasket.offsetX, midY);
-    ctx.lineTo(basket.x + shadowBasket.width + basketDepth + shadowBasket.offsetX, midY + basketDepth);
-    ctx.stroke();
-    
-    // Add connection particles between main and shadow basket occasionally
-    if (Math.random() > 0.9) {
-      const mainX = basket.x + basket.width/2;
-      const mainY = basket.y + basket.height/2;
-      const shadowX = basket.x + shadowBasket.offsetX + shadowBasket.width/2;
-      const shadowY = basket.y + shadowBasket.offsetY + shadowBasket.height/2;
-      
-      // Calculate direction vector
-      const dx = shadowX - mainX;
-      const dy = shadowY - mainY;
-      const dist = Math.sqrt(dx*dx + dy*dy);
-      
-      // Normalized direction
-      const ndx = dx / dist;
-      const ndy = dy / dist;
-      
-      // Create particle at random position along the connection line
-      const t = Math.random();
-      const particleX = mainX + dx * t;
-      const particleY = mainY + dy * t;
-      
-      // Add particle
-      gameState.particles.push({
-        x: particleX,
-        y: particleY,
-        size: Math.random() * 3 + 1,
-        speedX: ndx * (Math.random() * 2),
-        speedY: ndy * (Math.random() * 2),
-        color: shadowBasket.color,
-        life: 20,
-        opacity: 0.7,
-        height: Math.random() * 3
-      });
-    }
-    
-    // Add pulse effect
-    const pulseFactor = Math.sin(Date.now() / 200) * 0.1 + 0.9;
-    const pulseSize = shadowBasket.width * 0.6 * pulseFactor;
-    
-    const pulseGradient = ctx.createRadialGradient(
-      basket.x + shadowBasket.offsetX + shadowBasket.width/2, 
-      basket.y + shadowBasket.offsetY + shadowBasket.height/2, 
-      0,
-      basket.x + shadowBasket.offsetX + shadowBasket.width/2, 
-      basket.y + shadowBasket.offsetY + shadowBasket.height/2, 
-      pulseSize
-    );
-    
-    pulseGradient.addColorStop(0, "rgba(255, 255, 255, 0.3)");
-    pulseGradient.addColorStop(0.7, shadowBasket.color + "40");
-    pulseGradient.addColorStop(1, "rgba(255, 255, 255, 0)");
-    
-    ctx.fillStyle = pulseGradient;
-    ctx.fillRect(
-      basket.x + shadowBasket.offsetX - pulseSize/2, 
-      basket.y + shadowBasket.offsetY - pulseSize/2, 
-      shadowBasket.width + pulseSize, 
-      shadowBasket.height + pulseSize
-    );
+  // Choose basket style based on user selection
+  switch(basket.style) {
+    case 'futuristic':
+      drawFuturisticBasket();
+      break;
+    case 'cute':
+      drawCuteBasket();
+      break;
+    case 'crystal':
+      drawCrystalBasket();
+      break;
+    case 'fire':
+      drawFireBasket();
+      break;
+    case 'classic':
+    default:
+      drawClassicBasket();
+      break;
   }
   
-  // Now draw the main basket
-  // Shadow
-  ctx.fillStyle = "rgba(0, 0, 0, 0.3)";
-  ctx.beginPath();
-  ctx.moveTo(basket.x + shadowOffset, basket.y + shadowOffset);
-  ctx.lineTo(basket.x + basket.width + shadowOffset, basket.y + shadowOffset);
-  ctx.lineTo(basket.x + basket.width + shadowOffset, basket.y + basket.height + shadowOffset);
-  ctx.lineTo(basket.x + shadowOffset, basket.y + basket.height + shadowOffset);
-  ctx.closePath();
-  ctx.fill();
+  ctx.restore();
   
-  // Draw 3D sides
-  
-  // Right side - darker
-  ctx.fillStyle = basket.tertiaryColor;
-  ctx.beginPath();
-  ctx.moveTo(basket.x + basket.width, basket.y);
-  ctx.lineTo(basket.x + basket.width + basketDepth, basket.y + basketDepth);
-  ctx.lineTo(basket.x + basket.width + basketDepth, basket.y + basket.height + basketDepth);
-  ctx.lineTo(basket.x + basket.width, basket.y + basket.height);
-  ctx.closePath();
-  ctx.fill();
-  
-  // Bottom side
-  ctx.fillStyle = darkenColor(basket.color, 30);
-  ctx.beginPath();
-  ctx.moveTo(basket.x, basket.y + basket.height);
-  ctx.lineTo(basket.x + basketDepth, basket.y + basket.height + basketDepth);
-  ctx.lineTo(basket.x + basket.width + basketDepth, basket.y + basket.height + basketDepth);
-  ctx.lineTo(basket.x + basket.width, basket.y + basket.height);
-  ctx.closePath();
-  ctx.fill();
-  
-  // Main basket face with metallic gradient
-  const basketGradient = ctx.createLinearGradient(
-    basket.x, basket.y, 
-    basket.x + basket.width, basket.y + basket.height
-  );
-  
-  // Change gradient based on powerup status or damage flash
-  if (basket.damageFlash) {
-    // Red gradient for damage
-    basketGradient.addColorStop(0, "#ff5555");
-    basketGradient.addColorStop(0.5, "#ff3030");
-    basketGradient.addColorStop(1, "#cc0000");
-    
-    // Add red glow effect when damaged
-    ctx.shadowColor = "#ff0000";
-    ctx.shadowBlur = 20;
-  } else if (gameState.hasActivePowerup) {
-    const powerupColor = powerupTypes.find(p => p.type === gameState.activePowerupType)?.color || basket.color;
-    basketGradient.addColorStop(0, lightenColor(powerupColor, 20));
-    basketGradient.addColorStop(0.5, powerupColor);
-    basketGradient.addColorStop(1, darkenColor(powerupColor, 20));
-    
-    // Add glow effect when powerup is active
-    ctx.shadowColor = powerupColor;
-    ctx.shadowBlur = glowIntensity;
-  } else {
-    basketGradient.addColorStop(0, lightenColor(basket.color, 20));
-    basketGradient.addColorStop(0.5, basket.color);
-    basketGradient.addColorStop(1, darkenColor(basket.color, 20));
-  }
-  
-  ctx.fillStyle = basketGradient;
-  ctx.fillRect(basket.x, basket.y, basket.width, basket.height);
-  
-  // Reset shadow
-  ctx.shadowBlur = 0;
-  
-  // Top rim - lighter
-  ctx.fillStyle = lightenColor(basket.color, 20);
-  ctx.fillRect(basket.x, basket.y, basket.width, 10);
-  
-  // Basket pattern
-  ctx.strokeStyle = "rgba(255, 255, 255, 0.7)";
-  ctx.lineWidth = 2;
-  
-  // Vertical lines with perspective
-  for (let i = 1; i < 4; i++) {
-    const x = basket.x + (basket.width / 4) * i;
-    ctx.beginPath();
-    ctx.moveTo(x, basket.y);
-    ctx.lineTo(x, basket.y + basket.height);
-    // Add perspective lines to rim
-    ctx.moveTo(x, basket.y);
-    ctx.lineTo(x + basketDepth/2, basket.y + basketDepth/2);
-    ctx.stroke();
-  }
-  
-  // Horizontal line with perspective
-  const midY = basket.y + basket.height/2;
-  ctx.beginPath();
-  ctx.moveTo(basket.x, midY);
-  ctx.lineTo(basket.x + basket.width, midY);
-  // Add perspective line to right side
-  ctx.moveTo(basket.x + basket.width, midY);
-  ctx.lineTo(basket.x + basket.width + basketDepth, midY + basketDepth);
-  ctx.stroke();
-  
-  // Add metallic highlight
-  const highlightGradient = ctx.createLinearGradient(
-    basket.x, basket.y, 
-    basket.x + basket.width/3, basket.y + basket.height/3
-  );
-  highlightGradient.addColorStop(0, "rgba(255, 255, 255, 0.7)");
-  highlightGradient.addColorStop(1, "rgba(255, 255, 255, 0)");
-  
-  ctx.fillStyle = highlightGradient;
+  // Add shadow beneath basket for 3D effect
+  ctx.fillStyle = 'rgba(0,0,0,0.15)';
   ctx.beginPath();
   ctx.ellipse(
-    basket.x + basket.width/5, 
-    basket.y + basket.height/5, 
-    basket.width/5, 
-    basket.height/8, 
-    Math.PI/4, 0, Math.PI * 2
+    basket.x + basket.width/2, 
+    basket.y + basket.height + 10, 
+    basket.width/2 * 0.8, 
+    basket.height/4 * 0.5, 
+    0, 0, Math.PI * 2
   );
   ctx.fill();
+}
+
+// Classic wicker basket style
+function drawClassicBasket() {
+  // Base basket shape - 3D effect with depth
+  ctx.fillStyle = basket.powerupActive ? getPowerupBasketColor() : basket.color;
   
-  // Pulse animation when powerup is active
-  if (gameState.hasActivePowerup) {
-    const pulseFactor = Math.sin(Date.now() / 200) * 0.1 + 0.9;
-    const pulseSize = basket.width * 0.6 * pulseFactor;
-    
-    const powerupColor = powerupTypes.find(p => p.type === gameState.activePowerupType)?.color || "#ffffff";
-    const pulseGradient = ctx.createRadialGradient(
-      basket.x + basket.width/2, basket.y + basket.height/2, 0,
-      basket.x + basket.width/2, basket.y + basket.height/2, pulseSize
-    );
-    
-    pulseGradient.addColorStop(0, "rgba(255, 255, 255, 0.3)");
-    pulseGradient.addColorStop(0.7, `${powerupColor}40`);
-    pulseGradient.addColorStop(1, "rgba(255, 255, 255, 0)");
-    
-    ctx.fillStyle = pulseGradient;
-    ctx.fillRect(
-      basket.x - pulseSize/2, 
-      basket.y - pulseSize/2, 
-      basket.width + pulseSize, 
-      basket.height + pulseSize
-    );
+  // Bottom of basket (3D effect)
+  ctx.fillStyle = basket.tertiaryColor;
+  ctx.beginPath();
+  ctx.moveTo(-basket.width/2, basket.height/2);
+  ctx.lineTo(-basket.width/2 + basket.depth, basket.height/2 - basket.depth);
+  ctx.lineTo(basket.width/2 - basket.depth, basket.height/2 - basket.depth);
+  ctx.lineTo(basket.width/2, basket.height/2);
+  ctx.closePath();
+  ctx.fill();
+  
+  // Front face of basket
+  ctx.fillStyle = basket.powerupActive ? getPowerupBasketColor() : basket.color;
+  ctx.fillRect(-basket.width/2, -basket.height/2, basket.width, basket.height);
+  
+  // Right side of basket (3D)
+  ctx.fillStyle = basket.secondaryColor;
+  ctx.beginPath();
+  ctx.moveTo(basket.width/2, -basket.height/2);
+  ctx.lineTo(basket.width/2 - basket.depth, -basket.height/2 - basket.depth);
+  ctx.lineTo(basket.width/2 - basket.depth, basket.height/2 - basket.depth);
+  ctx.lineTo(basket.width/2, basket.height/2);
+  ctx.closePath();
+  ctx.fill();
+  
+  // Top of basket (3D)
+  ctx.fillStyle = basket.powerupActive ? getDarkerPowerupColor() : darkenColor(basket.color, 20);
+  ctx.beginPath();
+  ctx.moveTo(-basket.width/2, -basket.height/2);
+  ctx.lineTo(-basket.width/2 + basket.depth, -basket.height/2 - basket.depth);
+  ctx.lineTo(basket.width/2 - basket.depth, -basket.height/2 - basket.depth);
+  ctx.lineTo(basket.width/2, -basket.height/2);
+  ctx.closePath();
+  ctx.fill();
+  
+  // Wicker pattern horizontal lines
+  const lineCount = 5;
+  const lineSpacing = basket.height / (lineCount + 1);
+  
+  ctx.strokeStyle = basket.powerupActive ? getLighterPowerupColor() : lightenColor(basket.color, 10);
+  ctx.lineWidth = 2;
+  
+  for (let i = 1; i <= lineCount; i++) {
+    const y = -basket.height/2 + i * lineSpacing;
+    ctx.beginPath();
+    ctx.moveTo(-basket.width/2, y);
+    ctx.lineTo(basket.width/2, y);
+    ctx.stroke();
   }
+  
+  // Wicker pattern vertical lines
+  const vertLineCount = 8;
+  const vertLineSpacing = basket.width / (vertLineCount + 1);
+  
+  for (let i = 1; i <= vertLineCount; i++) {
+    const x = -basket.width/2 + i * vertLineSpacing;
+    ctx.beginPath();
+    ctx.moveTo(x, -basket.height/2);
+    ctx.lineTo(x, basket.height/2);
+    ctx.stroke();
+  }
+  
+  // Handle
+  ctx.strokeStyle = basket.powerupActive ? getDarkerPowerupColor() : basket.tertiaryColor;
+  ctx.lineWidth = 5;
+  ctx.beginPath();
+  ctx.arc(0, -basket.height/2 - 20, basket.width/3, 0, Math.PI, true);
+  ctx.stroke();
+}
+
+// Futuristic spaceship-style basket
+function drawFuturisticBasket() {
+  const baseColor = basket.powerupActive ? getPowerupBasketColor() : "#4686FF";
+  const accentColor = basket.powerupActive ? getLighterPowerupColor() : "#00D1FF";
+  const darkColor = basket.powerupActive ? getDarkerPowerupColor() : "#1A3A75";
+  
+  // Main body
+  ctx.fillStyle = baseColor;
+  ctx.beginPath();
+  ctx.moveTo(-basket.width/2, 0);
+  ctx.lineTo(-basket.width/2 + 10, -basket.height/2);
+  ctx.lineTo(basket.width/2 - 10, -basket.height/2);
+  ctx.lineTo(basket.width/2, 0);
+  ctx.lineTo(basket.width/2 - 15, basket.height/2);
+  ctx.lineTo(-basket.width/2 + 15, basket.height/2);
+  ctx.closePath();
+  ctx.fill();
+  
+  // Bottom shadow
+  ctx.fillStyle = darkColor;
+  ctx.beginPath();
+  ctx.moveTo(-basket.width/2 + 15, basket.height/2);
+  ctx.lineTo(basket.width/2 - 15, basket.height/2);
+  ctx.lineTo(basket.width/2 - 20, basket.height/2 - 10);
+  ctx.lineTo(-basket.width/2 + 20, basket.height/2 - 10);
+  ctx.closePath();
+  ctx.fill();
+  
+  // Cockpit/dome
+  ctx.fillStyle = accentColor;
+  ctx.beginPath();
+  ctx.arc(0, -basket.height/4, basket.width/4, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Dome highlight
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+  ctx.beginPath();
+  ctx.arc(-5, -basket.height/4 - 5, basket.width/8, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Side thrusters
+  ctx.fillStyle = darkColor;
+  ctx.fillRect(-basket.width/2 - 10, -5, 12, 10);
+  ctx.fillRect(basket.width/2 - 2, -5, 12, 10);
+  
+  // Thruster glow effect
+  if (Math.random() > 0.5) {
+    ctx.fillStyle = 'rgba(255, 165, 0, 0.8)';
+    ctx.beginPath();
+    ctx.moveTo(-basket.width/2 - 10, 0);
+    ctx.lineTo(-basket.width/2 - 20, 5);
+    ctx.lineTo(-basket.width/2 - 20, -5);
+    ctx.fill();
+    
+    ctx.beginPath();
+    ctx.moveTo(basket.width/2 + 10, 0);
+    ctx.lineTo(basket.width/2 + 20, 5);
+    ctx.lineTo(basket.width/2 + 20, -5);
+    ctx.fill();
+  }
+  
+  // Detail lines
+  ctx.strokeStyle = accentColor;
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(-basket.width/3, basket.height/4);
+  ctx.lineTo(basket.width/3, basket.height/4);
+  ctx.stroke();
+  
+  ctx.beginPath();
+  ctx.moveTo(-basket.width/4, basket.height/2 - 5);
+  ctx.lineTo(basket.width/4, basket.height/2 - 5);
+  ctx.stroke();
+}
+
+// Cute teddy bear basket style
+function drawCuteBasket() {
+  const baseColor = basket.powerupActive ? getPowerupBasketColor() : "#BA8E6D";
+  const darkColor = basket.powerupActive ? getDarkerPowerupColor() : "#8B5A2B";
+  const accentColor = basket.powerupActive ? getLighterPowerupColor() : "#E8C19D";
+  
+  // Main body (bear shape)
+  ctx.fillStyle = baseColor;
+  ctx.beginPath();
+  ctx.arc(0, 0, basket.width/2 - 5, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Ears
+  ctx.fillStyle = baseColor;
+  ctx.beginPath();
+  ctx.arc(-basket.width/3, -basket.height/2 + 5, basket.width/6, 0, Math.PI * 2);
+  ctx.fill();
+  
+  ctx.beginPath();
+  ctx.arc(basket.width/3, -basket.height/2 + 5, basket.width/6, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Inner ears
+  ctx.fillStyle = accentColor;
+  ctx.beginPath();
+  ctx.arc(-basket.width/3, -basket.height/2 + 5, basket.width/10, 0, Math.PI * 2);
+  ctx.fill();
+  
+  ctx.beginPath();
+  ctx.arc(basket.width/3, -basket.height/2 + 5, basket.width/10, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Eyes
+  ctx.fillStyle = darkColor;
+  ctx.beginPath();
+  ctx.arc(-basket.width/6, -basket.height/8, basket.width/14, 0, Math.PI * 2);
+  ctx.fill();
+  
+  ctx.beginPath();
+  ctx.arc(basket.width/6, -basket.height/8, basket.width/14, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Eye highlights
+  ctx.fillStyle = 'white';
+  ctx.beginPath();
+  ctx.arc(-basket.width/6 + 2, -basket.height/8 - 2, basket.width/25, 0, Math.PI * 2);
+  ctx.fill();
+  
+  ctx.beginPath();
+  ctx.arc(basket.width/6 + 2, -basket.height/8 - 2, basket.width/25, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Nose
+  ctx.fillStyle = '#FF9999';
+  ctx.beginPath();
+  ctx.arc(0, 0, basket.width/10, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Mouth
+  ctx.strokeStyle = darkColor;
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(0, basket.height/8, basket.width/5, 0.2, Math.PI - 0.2);
+  ctx.stroke();
+  
+  // Basket opening/hollow
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+  ctx.beginPath();
+  ctx.arc(0, basket.height/6, basket.width/3, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+// Crystal basket style
+function drawCrystalBasket() {
+  const baseColor = basket.powerupActive ? getPowerupBasketColor() : "#A5F2F3";
+  const accentColor = basket.powerupActive ? getLighterPowerupColor() : "#D3FBFC";
+  const darkColor = basket.powerupActive ? getDarkerPowerupColor() : "#66A6A7";
+  
+  // Crystal base
+  ctx.fillStyle = baseColor;
+  ctx.beginPath();
+  ctx.moveTo(-basket.width/2, basket.height/4);
+  ctx.lineTo(-basket.width/3, -basket.height/2);
+  ctx.lineTo(basket.width/3, -basket.height/2);
+  ctx.lineTo(basket.width/2, basket.height/4);
+  ctx.lineTo(basket.width/3, basket.height/2);
+  ctx.lineTo(-basket.width/3, basket.height/2);
+  ctx.closePath();
+  ctx.fill();
+  
+  // Crystal face highlights
+  ctx.fillStyle = accentColor;
+  ctx.globalAlpha = 0.7;
+  
+  // Left face
+  ctx.beginPath();
+  ctx.moveTo(-basket.width/2, basket.height/4);
+  ctx.lineTo(-basket.width/3, -basket.height/2);
+  ctx.lineTo(-basket.width/6, -basket.height/4);
+  ctx.lineTo(-basket.width/4, basket.height/3);
+  ctx.closePath();
+  ctx.fill();
+  
+  // Right face
+  ctx.beginPath();
+  ctx.moveTo(basket.width/2, basket.height/4);
+  ctx.lineTo(basket.width/3, -basket.height/2);
+  ctx.lineTo(basket.width/6, -basket.height/4);
+  ctx.lineTo(basket.width/4, basket.height/3);
+  ctx.closePath();
+  ctx.fill();
+  
+  ctx.globalAlpha = 1.0;
+  
+  // Crystal edges
+  ctx.strokeStyle = darkColor;
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(-basket.width/2, basket.height/4);
+  ctx.lineTo(-basket.width/3, -basket.height/2);
+  ctx.lineTo(basket.width/3, -basket.height/2);
+  ctx.lineTo(basket.width/2, basket.height/4);
+  ctx.lineTo(basket.width/3, basket.height/2);
+  ctx.lineTo(-basket.width/3, basket.height/2);
+  ctx.closePath();
+  ctx.stroke();
+  
+  // Inner basin for catching
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+  ctx.beginPath();
+  ctx.ellipse(0, basket.height/6, basket.width/3, basket.height/4, 0, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Sparkle effects
+  const sparkleColor = basket.powerupActive ? getLighterPowerupColor() : 'rgba(255, 255, 255, 0.9)';
+  
+  function drawSparkle(x, y, size) {
+    ctx.fillStyle = sparkleColor;
+    ctx.beginPath();
+    ctx.moveTo(x, y - size);
+    ctx.lineTo(x + size/3, y - size/3);
+    ctx.lineTo(x + size, y);
+    ctx.lineTo(x + size/3, y + size/3);
+    ctx.lineTo(x, y + size);
+    ctx.lineTo(x - size/3, y + size/3);
+    ctx.lineTo(x - size, y);
+    ctx.lineTo(x - size/3, y - size/3);
+    ctx.closePath();
+    ctx.fill();
+  }
+  
+  // Add random sparkles
+  const sparkleCount = basket.powerupActive ? 5 : 3;
+  for (let i = 0; i < sparkleCount; i++) {
+    const sparkleX = (Math.random() - 0.5) * basket.width * 0.8;
+    const sparkleY = (Math.random() - 0.5) * basket.height * 0.8;
+    const sparkleSize = Math.random() * 5 + 3;
+    drawSparkle(sparkleX, sparkleY, sparkleSize);
+  }
+}
+
+// Fire basket style
+function drawFireBasket() {
+  const baseColor = basket.powerupActive ? getPowerupBasketColor() : "#FF5E3A";
+  const accentColor = basket.powerupActive ? getLighterPowerupColor() : "#FF9500";
+  const darkColor = basket.powerupActive ? getDarkerPowerupColor() : "#CD2A12";
+  
+  // Main bowl shape
+  ctx.fillStyle = baseColor;
+  ctx.beginPath();
+  ctx.moveTo(-basket.width/2, 0);
+  ctx.quadraticCurveTo(-basket.width/2, basket.height/2, 0, basket.height/2);
+  ctx.quadraticCurveTo(basket.width/2, basket.height/2, basket.width/2, 0);
+  ctx.quadraticCurveTo(basket.width/2.5, -basket.height/3, 0, -basket.height/3);
+  ctx.quadraticCurveTo(-basket.width/2.5, -basket.height/3, -basket.width/2, 0);
+  ctx.closePath();
+  ctx.fill();
+  
+  // Flames on the sides
+  function drawFlame(x, y, height, width, rotation = 0) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(rotation);
+    
+    const gradient = ctx.createLinearGradient(0, 0, 0, -height);
+    gradient.addColorStop(0, accentColor);
+    gradient.addColorStop(0.5, baseColor);
+    gradient.addColorStop(1, "rgba(255, 255, 0, 0.7)");
+    
+    ctx.fillStyle = gradient;
+    
+    // Draw flame shape
+    ctx.beginPath();
+    ctx.moveTo(-width/2, 0);
+    ctx.quadraticCurveTo(-width/4, -height/3, -width/3, -height/2);
+    ctx.quadraticCurveTo(-width/6, -height*2/3, 0, -height);
+    ctx.quadraticCurveTo(width/6, -height*2/3, width/3, -height/2);
+    ctx.quadraticCurveTo(width/4, -height/3, width/2, 0);
+    ctx.closePath();
+    ctx.fill();
+    
+    ctx.restore();
+  }
+  
+  // Draw several flames
+  const flameCount = 5;
+  const time = performance.now() / 1000;
+  
+  for (let i = 0; i < flameCount; i++) {
+    const position = (i / (flameCount - 1)) * basket.width - basket.width/2;
+    const height = (Math.sin(time * 3 + i) * 0.2 + 0.8) * basket.height/2;
+    const width = basket.width / (flameCount + 1);
+    const rotation = Math.sin(time * 2 + i * 2) * 0.15;
+    
+    drawFlame(position, -basket.height/6, height, width, rotation);
+  }
+  
+  // Inner bowl for catching
+  ctx.fillStyle = darkColor;
+  ctx.beginPath();
+  ctx.ellipse(0, basket.height/6, basket.width/3, basket.height/5, 0, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Add metallic rim
+  ctx.strokeStyle = '#FFC107';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(-basket.width/2, 0);
+  ctx.quadraticCurveTo(-basket.width/2, basket.height/2, 0, basket.height/2);
+  ctx.quadraticCurveTo(basket.width/2, basket.height/2, basket.width/2, 0);
+  ctx.stroke();
+}
+
+// Helper function to get color based on active powerup
+function getPowerupBasketColor() {
+  if (gameState.hasActivePowerup && gameState.activePowerupType) {
+    const powerupInfo = powerupTypes.find(p => p.type === gameState.activePowerupType);
+    return powerupInfo ? powerupInfo.color : basket.color;
+  }
+  return basket.color;
+}
+
+function getLighterPowerupColor() {
+  if (gameState.hasActivePowerup && gameState.activePowerupType) {
+    const powerupInfo = powerupTypes.find(p => p.type === gameState.activePowerupType);
+    return powerupInfo ? lightenColor(powerupInfo.color, 30) : lightenColor(basket.color, 30);
+  }
+  return lightenColor(basket.color, 30);
+}
+
+function getDarkerPowerupColor() {
+  if (gameState.hasActivePowerup && gameState.activePowerupType) {
+    const powerupInfo = powerupTypes.find(p => p.type === gameState.activePowerupType);
+    return powerupInfo ? darkenColor(powerupInfo.color, 30) : darkenColor(basket.color, 30);
+  }
+  return darkenColor(basket.color, 30);
 }
 
 // Modify drawFallingItems to add more realistic fruit rendering
@@ -2077,12 +2220,14 @@ function gameLoop(timestamp) {
   if (!gameState.isPaused) {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
-    // Update screen shake effect with frame rate independence
-    updateScreenShake(adjustedDeltaTime);
-    
-    // Update enhanced camera shake if available
-    if (window.EnhancedCameraShake && EnhancedCameraShake.config.active) {
+    // Use the enhanced camera shake system if available, otherwise fall back to the original
+    if (window.cameraShake) {
+      window.cameraShake.update(adjustedDeltaTime);
+    } else if (window.EnhancedCameraShake && EnhancedCameraShake.config.active) {
       EnhancedCameraShake.update();
+    } else {
+      // Fall back to the original screen shake
+      updateScreenShake(adjustedDeltaTime);
     }
     
     drawBackground();
@@ -2312,6 +2457,12 @@ function gameLoop(timestamp) {
             // Special pink invincibility particles
             createParticles(obstacle.x + obstacle.size/2, obstacle.y + obstacle.size/2, "#e91e63", 20);
           }
+          
+          // Create dramatic effect when eating obstacles with shield
+          if (window.createObstacleEatEffect) {
+            window.createObstacleEatEffect(obstacle.x + obstacle.size/2, obstacle.y + obstacle.size/2, obstacle.type);
+          }
+          
           playSound("bounce");
         } else {
           // Deduct points and life
@@ -2319,9 +2470,17 @@ function gameLoop(timestamp) {
           gameState.lives--;
           
           // Add enhanced camera shake effect for damage
-          if (window.EnhancedCameraShake) {
+          if (window.cameraShake) {
+            // Use dramatic shake effect based on obstacle type
+            const shakeIntensity = obstacle.points * 3 + 8; // More points = stronger shake
+            window.cameraShake.start(shakeIntensity, 500, 'obstacle');
+          } else if (window.EnhancedCameraShake) {
             EnhancedCameraShake.init(canvas);
             EnhancedCameraShake.damageHit();
+          } else {
+            // Fallback to basic screen shake
+            const shakeIntensity = obstacle.points * 3 + 3;
+            startScreenShake(shakeIntensity, 300);
           }
           
           // AI FEATURE: Shrink the basket when player loses a life
@@ -2345,10 +2504,6 @@ function gameLoop(timestamp) {
           
           // Create particles for obstacle hit
           createParticles(obstacle.x + obstacle.size/2, obstacle.y + obstacle.size/2, obstacle.color, 15);
-          
-          // Add screen shake effect based on obstacle type
-          const shakeIntensity = obstacle.points * 3 + 3; // More points = stronger shake
-          startScreenShake(shakeIntensity, 300); // 300ms shake duration
           
           // Check game over
           if (gameState.lives <= 0) {
@@ -2422,40 +2577,25 @@ function activatePowerup(type, duration) {
   }
   
   // Add enhanced camera shake for powerup activation
-  if (window.EnhancedCameraShake) {
-    EnhancedCameraShake.init(canvas);
-    
-    // Different effects for different powerups
+  if (window.cameraShake) {
+    // Use appropriate shake effect based on powerup type
     switch(type) {
       case "blast":
-        EnhancedCameraShake.explosion();
+        window.cameraShake.start(20, 800, 'explosion');
         break;
       case "freeze":
-        EnhancedCameraShake.shake({
-          intensity: 20,
-          duration: 800,
-          blurMax: 10,
-          flashEnabled: true,
-          flashColor: '#00bcd4',
-          flashOpacity: 0.5
-        });
+        window.cameraShake.start(15, 700, 'normal');
+        window.cameraShake.flash(0.3, 200); // Add a flash effect
         break;
       case "timeSlow":
-        EnhancedCameraShake.shake({
-          intensity: 15,
-          duration: 1000,
-          rotationMax: 2,
-          scaleMax: 0.1,
-          blurMax: 3,
-          flashEnabled: true,
-          flashColor: '#673ab7',
-          flashOpacity: 0.4
-        });
+        window.cameraShake.start(10, 1000, 'normal');
         break;
       default:
         // Default effect for other powerups
-        EnhancedCameraShake.medium();
+        window.cameraShake.start(8, 500, 'normal');
     }
+  } else if (window.EnhancedCameraShake) {
+    // ... existing EnhancedCameraShake code ...
   } else {
     // Fallback to basic screen shake
     startScreenShake(10, 500);
@@ -2752,6 +2892,10 @@ function startGame() {
   const wasMuted = gameState.isMuted;
   const savedGameSpeed = gameState.gameSpeed || 1.0;
   
+  // Set theme based on user selection
+  const currentTheme = localStorage.getItem('gameTheme') || 'space';
+  applyTheme(currentTheme);
+  
   // Reset game state
   gameState = {
     score: 0,
@@ -2787,6 +2931,9 @@ function startGame() {
   basket.width = 80 * sizeFactor;
   basket.height = 60 * sizeFactor;
   basket.powerupActive = false;
+  
+  // Set basket style based on user selection
+  basket.style = localStorage.getItem('gameBasket') || 'classic';
   
   // Reset UI
   updateUI();
@@ -2899,6 +3046,14 @@ function startGame() {
   animationFrame = requestAnimationFrame(enhancedGameLoop);
   
   console.log("Game started!");
+  
+  // Set theme based on user selection
+  if (customizations.theme) {
+    applyTheme(customizations.theme);
+  }
+  
+  // Set basket style
+  basket.style = customizations.basketStyle || 'classic';
 }
 
 // Restart the game
@@ -3511,10 +3666,15 @@ window.testRenderingImprovements = testRenderingImprovements;
 
 // Function to initiate screen shake
 function startScreenShake(intensity, duration) {
-  screenShake.active = true;
-  screenShake.intensity = intensity;
-  screenShake.duration = duration;
-  screenShake.timeLeft = duration;
+  if (window.cameraShake) {
+    window.cameraShake.start(intensity, duration, 'normal');
+  } else {
+    // Use the original screen shake system
+    screenShake.active = true;
+    screenShake.intensity = intensity;
+    screenShake.duration = duration;
+    screenShake.timeLeft = duration;
+  }
 }
 
 // Update screen shake effect with frame rate independence
@@ -3524,13 +3684,16 @@ function updateScreenShake(deltaTime) {
     
     if (screenShake.timeLeft <= 0) {
       screenShake.active = false;
-      canvas.style.transform = 'translate(0px, 0px)';
-    } else {
-      const intensity = screenShake.intensity * (screenShake.timeLeft / screenShake.duration);
-      const xShake = (Math.random() * 2 - 1) * intensity;
-      const yShake = (Math.random() * 2 - 1) * intensity;
-      canvas.style.transform = `translate(${xShake}px, ${yShake}px)`;
+      canvas.style.transform = ''; // Reset transform
+      return;
     }
+    
+    const intensity = screenShake.intensity * (screenShake.timeLeft / screenShake.duration);
+    const offsetX = (Math.random() * 2 - 1) * intensity;
+    const offsetY = (Math.random() * 2 - 1) * intensity;
+    
+    // Apply transform directly to the canvas element
+    canvas.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
   }
 }
 
@@ -3873,224 +4036,323 @@ function createBasketShrinkEffect() {
 
 // Modify the drawBasket function to show damage flash effect
 function drawBasket() {
-  const shadowOffset = 5;
-  const basketDepth = 15;
-  const glowIntensity = gameState.hasActivePowerup ? 15 : 0;
+  ctx.save();
+  ctx.translate(basket.x + basket.width / 2, basket.y + basket.height / 2);
+  ctx.rotate(basket.rotation);
   
-  // First draw the shadow basket if doubleTrouble is active
-  if (gameState.hasActivePowerup && gameState.activePowerupType === "doubleTrouble" && gameState.shadowBasket) {
-    // ... existing shadow basket code ...
+  // Choose basket style based on user selection
+  switch(basket.style) {
+    case 'futuristic':
+      drawFuturisticBasket();
+      break;
+    case 'cute':
+      drawCuteBasket();
+      break;
+    case 'classic':
+    default:
+      drawClassicBasket();
+      break;
   }
   
-  // Now draw the main basket
-  // Shadow
-  ctx.fillStyle = "rgba(0, 0, 0, 0.3)";
+  ctx.restore();
+  
+  // Add shadow beneath basket for 3D effect
+  ctx.fillStyle = 'rgba(0,0,0,0.15)';
   ctx.beginPath();
-  ctx.moveTo(basket.x + shadowOffset, basket.y + shadowOffset);
-  ctx.lineTo(basket.x + basket.width + shadowOffset, basket.y + shadowOffset);
-  ctx.lineTo(basket.x + basket.width + shadowOffset, basket.y + basket.height + shadowOffset);
-  ctx.lineTo(basket.x + shadowOffset, basket.y + basket.height + shadowOffset);
-  ctx.closePath();
+  ctx.ellipse(
+    basket.x + basket.width/2, 
+    basket.y + basket.height + 10, 
+    basket.width/2 * 0.8, 
+    basket.height/4 * 0.5, 
+    0, 0, Math.PI * 2
+  );
   ctx.fill();
+}
+
+// Classic wicker basket style
+function drawClassicBasket() {
+  // Base basket shape - 3D effect with depth
+  ctx.fillStyle = basket.powerupActive ? getPowerupBasketColor() : basket.color;
   
-  // Draw 3D sides
-  
-  // Right side - darker
+  // Bottom of basket (3D effect)
   ctx.fillStyle = basket.tertiaryColor;
   ctx.beginPath();
-  ctx.moveTo(basket.x + basket.width, basket.y);
-  ctx.lineTo(basket.x + basket.width + basketDepth, basket.y + basketDepth);
-  ctx.lineTo(basket.x + basket.width + basketDepth, basket.y + basket.height + basketDepth);
-  ctx.lineTo(basket.x + basket.width, basket.y + basket.height);
+  ctx.moveTo(-basket.width/2, basket.height/2);
+  ctx.lineTo(-basket.width/2 + basket.depth, basket.height/2 - basket.depth);
+  ctx.lineTo(basket.width/2 - basket.depth, basket.height/2 - basket.depth);
+  ctx.lineTo(basket.width/2, basket.height/2);
   ctx.closePath();
   ctx.fill();
   
-  // Bottom side
-  ctx.fillStyle = darkenColor(basket.color, 30);
+  // Front face of basket
+  ctx.fillStyle = basket.powerupActive ? getPowerupBasketColor() : basket.color;
+  ctx.fillRect(-basket.width/2, -basket.height/2, basket.width, basket.height);
+  
+  // Right side of basket (3D)
+  ctx.fillStyle = basket.secondaryColor;
   ctx.beginPath();
-  ctx.moveTo(basket.x, basket.y + basket.height);
-  ctx.lineTo(basket.x + basketDepth, basket.y + basket.height + basketDepth);
-  ctx.lineTo(basket.x + basket.width + basketDepth, basket.y + basket.height + basketDepth);
-  ctx.lineTo(basket.x + basket.width, basket.y + basket.height);
+  ctx.moveTo(basket.width/2, -basket.height/2);
+  ctx.lineTo(basket.width/2 - basket.depth, -basket.height/2 - basket.depth);
+  ctx.lineTo(basket.width/2 - basket.depth, basket.height/2 - basket.depth);
+  ctx.lineTo(basket.width/2, basket.height/2);
   ctx.closePath();
   ctx.fill();
   
-  // Main basket face with metallic gradient
-  const basketGradient = ctx.createLinearGradient(
-    basket.x, basket.y, 
-    basket.x + basket.width, basket.y + basket.height
-  );
+  // Top of basket (3D)
+  ctx.fillStyle = basket.powerupActive ? getDarkerPowerupColor() : darkenColor(basket.color, 20);
+  ctx.beginPath();
+  ctx.moveTo(-basket.width/2, -basket.height/2);
+  ctx.lineTo(-basket.width/2 + basket.depth, -basket.height/2 - basket.depth);
+  ctx.lineTo(basket.width/2 - basket.depth, -basket.height/2 - basket.depth);
+  ctx.lineTo(basket.width/2, -basket.height/2);
+  ctx.closePath();
+  ctx.fill();
   
-  // Change gradient based on powerup status or damage flash
-  if (basket.damageFlash) {
-    // Red gradient for damage
-    basketGradient.addColorStop(0, "#ff5555");
-    basketGradient.addColorStop(0.5, "#ff3030");
-    basketGradient.addColorStop(1, "#cc0000");
+  // Wicker pattern horizontal lines
+  const lineCount = 5;
+  const lineSpacing = basket.height / (lineCount + 1);
+  
+  ctx.strokeStyle = basket.powerupActive ? getLighterPowerupColor() : lightenColor(basket.color, 10);
+  ctx.lineWidth = 2;
+  
+  for (let i = 1; i <= lineCount; i++) {
+    const y = -basket.height/2 + i * lineSpacing;
+    ctx.beginPath();
+    ctx.moveTo(-basket.width/2, y);
+    ctx.lineTo(basket.width/2, y);
+    ctx.stroke();
+  }
+  
+  // Wicker pattern vertical lines
+  const vertLineCount = 8;
+  const vertLineSpacing = basket.width / (vertLineCount + 1);
+  
+  for (let i = 1; i <= vertLineCount; i++) {
+    const x = -basket.width/2 + i * vertLineSpacing;
+    ctx.beginPath();
+    ctx.moveTo(x, -basket.height/2);
+    ctx.lineTo(x, basket.height/2);
+    ctx.stroke();
+  }
+  
+  // Handle
+  ctx.strokeStyle = basket.powerupActive ? getDarkerPowerupColor() : basket.tertiaryColor;
+  ctx.lineWidth = 5;
+  ctx.beginPath();
+  ctx.arc(0, -basket.height/2 - 20, basket.width/3, 0, Math.PI, true);
+  ctx.stroke();
+}
+
+// Futuristic spaceship-style basket
+function drawFuturisticBasket() {
+  const baseColor = basket.powerupActive ? getPowerupBasketColor() : "#4686FF";
+  const accentColor = basket.powerupActive ? getLighterPowerupColor() : "#00D1FF";
+  const darkColor = basket.powerupActive ? getDarkerPowerupColor() : "#1A3A75";
+  
+  // Main body
+  ctx.fillStyle = baseColor;
+  ctx.beginPath();
+  ctx.moveTo(-basket.width/2, 0);
+  ctx.lineTo(-basket.width/2 + 10, -basket.height/2);
+  ctx.lineTo(basket.width/2 - 10, -basket.height/2);
+  ctx.lineTo(basket.width/2, 0);
+  ctx.lineTo(basket.width/2 - 15, basket.height/2);
+  ctx.lineTo(-basket.width/2 + 15, basket.height/2);
+  ctx.closePath();
+  ctx.fill();
+  
+  // Bottom shadow
+  ctx.fillStyle = darkColor;
+  ctx.beginPath();
+  ctx.moveTo(-basket.width/2 + 15, basket.height/2);
+  ctx.lineTo(basket.width/2 - 15, basket.height/2);
+  ctx.lineTo(basket.width/2 - 20, basket.height/2 - 10);
+  ctx.lineTo(-basket.width/2 + 20, basket.height/2 - 10);
+  ctx.closePath();
+  ctx.fill();
+  
+  // Cockpit/dome
+  ctx.fillStyle = accentColor;
+  ctx.beginPath();
+  ctx.arc(0, -basket.height/4, basket.width/4, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Dome highlight
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+  ctx.beginPath();
+  ctx.arc(-5, -basket.height/4 - 5, basket.width/8, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Side thrusters
+  ctx.fillStyle = darkColor;
+  ctx.fillRect(-basket.width/2 - 10, -5, 12, 10);
+  ctx.fillRect(basket.width/2 - 2, -5, 12, 10);
+  
+  // Thruster glow effect
+  if (Math.random() > 0.5) {
+    ctx.fillStyle = 'rgba(255, 165, 0, 0.8)';
+    ctx.beginPath();
+    ctx.moveTo(-basket.width/2 - 10, 0);
+    ctx.lineTo(-basket.width/2 - 20, 5);
+    ctx.lineTo(-basket.width/2 - 20, -5);
+    ctx.fill();
     
-    // Add red glow effect when damaged
-    ctx.shadowColor = "#ff0000";
-    ctx.shadowBlur = 20;
-  } else if (gameState.hasActivePowerup) {
-    const powerupColor = powerupTypes.find(p => p.type === gameState.activePowerupType)?.color || basket.color;
-    basketGradient.addColorStop(0, lightenColor(powerupColor, 20));
-    basketGradient.addColorStop(0.5, powerupColor);
-    basketGradient.addColorStop(1, darkenColor(powerupColor, 20));
-    
-    // Add glow effect when powerup is active
-    ctx.shadowColor = powerupColor;
-    ctx.shadowBlur = glowIntensity;
-  } else {
-    basketGradient.addColorStop(0, lightenColor(basket.color, 20));
-    basketGradient.addColorStop(0.5, basket.color);
-    basketGradient.addColorStop(1, darkenColor(basket.color, 20));
+    ctx.beginPath();
+    ctx.moveTo(basket.width/2 + 10, 0);
+    ctx.lineTo(basket.width/2 + 20, 5);
+    ctx.lineTo(basket.width/2 + 20, -5);
+    ctx.fill();
   }
   
-  ctx.fillStyle = basketGradient;
-  ctx.fillRect(basket.x, basket.y, basket.width, basket.height);
+  // Detail lines
+  ctx.strokeStyle = accentColor;
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(-basket.width/3, basket.height/4);
+  ctx.lineTo(basket.width/3, basket.height/4);
+  ctx.stroke();
   
-  // Reset shadow
-  ctx.shadowBlur = 0;
-  
-  // Rest of the drawBasket function remains the same
+  ctx.beginPath();
+  ctx.moveTo(-basket.width/4, basket.height/2 - 5);
+  ctx.lineTo(basket.width/4, basket.height/2 - 5);
+  ctx.stroke();
 }
 
-// Update the obstacle collision code in the gameLoop function
-// Replace the section after "// Deduct points and life"
-// Deduct points and life
-gameState.score = Math.max(0, gameState.score - obstacle.points * 5);
-gameState.lives--;
-
-// Add enhanced camera shake effect for damage
-if (window.EnhancedCameraShake) {
-  EnhancedCameraShake.init(canvas);
-  EnhancedCameraShake.damageHit();
+// Cute teddy bear basket style
+function drawCuteBasket() {
+  const baseColor = basket.powerupActive ? getPowerupBasketColor() : "#BA8E6D";
+  const darkColor = basket.powerupActive ? getDarkerPowerupColor() : "#8B5A2B";
+  const accentColor = basket.powerupActive ? getLighterPowerupColor() : "#E8C19D";
+  
+  // Main body (bear shape)
+  ctx.fillStyle = baseColor;
+  ctx.beginPath();
+  ctx.arc(0, 0, basket.width/2 - 5, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Ears
+  ctx.fillStyle = baseColor;
+  ctx.beginPath();
+  ctx.arc(-basket.width/3, -basket.height/2 + 5, basket.width/6, 0, Math.PI * 2);
+  ctx.fill();
+  
+  ctx.beginPath();
+  ctx.arc(basket.width/3, -basket.height/2 + 5, basket.width/6, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Inner ears
+  ctx.fillStyle = accentColor;
+  ctx.beginPath();
+  ctx.arc(-basket.width/3, -basket.height/2 + 5, basket.width/10, 0, Math.PI * 2);
+  ctx.fill();
+  
+  ctx.beginPath();
+  ctx.arc(basket.width/3, -basket.height/2 + 5, basket.width/10, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Eyes
+  ctx.fillStyle = darkColor;
+  ctx.beginPath();
+  ctx.arc(-basket.width/6, -basket.height/8, basket.width/14, 0, Math.PI * 2);
+  ctx.fill();
+  
+  ctx.beginPath();
+  ctx.arc(basket.width/6, -basket.height/8, basket.width/14, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Eye highlights
+  ctx.fillStyle = 'white';
+  ctx.beginPath();
+  ctx.arc(-basket.width/6 + 2, -basket.height/8 - 2, basket.width/25, 0, Math.PI * 2);
+  ctx.fill();
+  
+  ctx.beginPath();
+  ctx.arc(basket.width/6 + 2, -basket.height/8 - 2, basket.width/25, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Nose
+  ctx.fillStyle = '#FF9999';
+  ctx.beginPath();
+  ctx.arc(0, 0, basket.width/10, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Mouth
+  ctx.strokeStyle = darkColor;
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(0, basket.height/8, basket.width/5, 0.2, Math.PI - 0.2);
+  ctx.stroke();
+  
+  // Basket opening/hollow
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+  ctx.beginPath();
+  ctx.arc(0, basket.height/6, basket.width/3, 0, Math.PI * 2);
+  ctx.fill();
 }
 
-// AI FEATURE: Shrink the basket when player loses a life
-// Only if not already using giant powerup
-if (!gameState.hasActivePowerup || gameState.activePowerupType !== "giant") {
-  // Store original dimensions for reference
-  const originalWidth = 80;
-  const originalHeight = 60;
-  
-  // Calculate new size based on remaining lives (3 = 100%, 2 = 80%, 1 = 65%)
-  const sizeFactors = [0.65, 0.8, 1.0];
-  const sizeFactor = sizeFactors[gameState.lives - 1] || 0.65;
-  
-  // Update basket dimensions
-  basket.width = originalWidth * sizeFactor;
-  basket.height = originalHeight * sizeFactor;
-  
-  // Create visual effect for basket shrinking
-  createBasketShrinkEffect();
-}
-
-// Create particles for obstacle hit
-createParticles(obstacle.x + obstacle.size/2, obstacle.y + obstacle.size/2, obstacle.color, 15);
-
-// Add screen shake effect based on obstacle type
-const shakeIntensity = obstacle.points * 3 + 3; // More points = stronger shake
-startScreenShake(shakeIntensity, 300); // 300ms shake duration
-
-// In case we need to force a level up for testing:
-// Uncomment and use this keybinding to test level completion
-document.addEventListener('keydown', function(event) {
-  if (event.code === 'KeyL') {
-    console.log("TESTING LEVEL UP");
-    levelUp();
+// Helper function to get color based on active powerup
+function getPowerupBasketColor() {
+  if (gameState.hasActivePowerup && gameState.activePowerupType) {
+    const powerupInfo = powerupTypes.find(p => p.type === gameState.activePowerupType);
+    return powerupInfo ? powerupInfo.color : basket.color;
   }
-});
-
-// Add this function near the bottom of the file, before the window.addEventListener('load', ...) section
-function testLevelUp() {
-  // Make this an actual activation, not just a style preview
-  levelUp();
-  console.log("TEST: Level up triggered manually");
+  return basket.color;
 }
 
-// Update the window.addEventListener('load', function() {...}) section to add a test button
-window.addEventListener('load', function() {
-  console.log("Game initialized");
-  // Initialize canvas size
-  canvas.width = 400;
-  canvas.height = 600;
-  
-  // Show intro and handle UI
-  intro.style.display = "flex";
-  canvas.style.display = "none";
-  controls.style.display = "none";
-  gameInterface.style.display = "none";
-  
-  // Make sure all UI elements are in the correct state
-  document.getElementById("score").innerText = "Score: 0";
-  document.getElementById("level").innerText = "Level: 1";
-  
-  // Initialize hearts for lives display
-  document.getElementById("lives").innerHTML = "Lives: ❤️❤️❤️";
-  
-  document.getElementById("progressBar").style.width = "0%";
-  document.getElementById("muteBtn").innerText = gameState.isMuted ? "🔇" : "🔊";
-  
-  // Add debug/test button (only visible during development)
-  const testLevelButton = document.createElement('button');
-  testLevelButton.textContent = "Test Level Complete";
-  testLevelButton.className = "button";
-  testLevelButton.style.position = "fixed";
-  testLevelButton.style.bottom = "10px";
-  testLevelButton.style.right = "10px";
-  testLevelButton.style.zIndex = "9999";
-  testLevelButton.style.background = "linear-gradient(to bottom, #9b59b6, #8e44ad)";
-  testLevelButton.style.fontSize = "14px";
-  testLevelButton.style.padding = "8px 15px";
-  testLevelButton.addEventListener('click', testLevelUp);
-  document.body.appendChild(testLevelButton);
-  
-  // Setup mobile controls if needed
-  setupMobileControls();
-  
-  console.log("Game started!");
-});
+function getLighterPowerupColor() {
+  if (gameState.hasActivePowerup && gameState.activePowerupType) {
+    const powerupInfo = powerupTypes.find(p => p.type === gameState.activePowerupType);
+    return powerupInfo ? lightenColor(powerupInfo.color, 30) : lightenColor(basket.color, 30);
+  }
+  return lightenColor(basket.color, 30);
+}
 
-// Test function for enhanced camera shake effects
-function testEnhancedCameraShake() {
-  if (!window.EnhancedCameraShake) {
-    console.warn("Enhanced Camera Shake module not loaded!");
-    return;
+function getDarkerPowerupColor() {
+  if (gameState.hasActivePowerup && gameState.activePowerupType) {
+    const powerupInfo = powerupTypes.find(p => p.type === gameState.activePowerupType);
+    return powerupInfo ? darkenColor(powerupInfo.color, 30) : darkenColor(basket.color, 30);
+  }
+  return darkenColor(basket.color, 30);
+}
+
+// ... existing code ...
+
+// Function to apply the selected theme
+function applyTheme(theme) {
+  let background, particleColors;
+  
+  switch(theme) {
+    case 'ocean':
+      background = {
+        gradient: 'linear-gradient(45deg, #141E30, #243B55, #0575E6)',
+        stars: 'rgba(255, 255, 255, 0.8)'
+      };
+      particleColors = ['#2980b9', '#3498db', '#1abc9c', '#16a085'];
+      break;
+    case 'forest':
+      background = {
+        gradient: 'linear-gradient(45deg, #134E5E, #71B280, #2C5364)',
+        stars: 'rgba(255, 255, 255, 0.7)'
+      };
+      particleColors = ['#27ae60', '#2ecc71', '#f1c40f', '#f39c12'];
+      break;
+    case 'space':
+    default:
+      background = {
+        gradient: 'linear-gradient(45deg, #1a2a6c, #b21f1f, #fdbb2d)',
+        stars: 'rgba(255, 255, 255, 0.8)'
+      };
+      particleColors = ['#e74c3c', '#3498db', '#f1c40f', '#9b59b6'];
+      break;
   }
   
-  // Initialize with canvas
-  EnhancedCameraShake.init(canvas);
+  // Apply the gradient to the body
+  document.body.style.background = background.gradient;
   
-  // Show the effects one after another
-  console.log("Testing subtle shake...");
-  EnhancedCameraShake.subtle();
+  // You could also update star colors, particle colors, etc.
+  // but that would require more extensive modifications
   
-  setTimeout(() => {
-    console.log("Testing medium shake...");
-    EnhancedCameraShake.medium();
-  }, 2000);
-  
-  setTimeout(() => {
-    console.log("Testing intense shake...");
-    EnhancedCameraShake.intense();
-  }, 4000);
-  
-  setTimeout(() => {
-    console.log("Testing extreme shake...");
-    EnhancedCameraShake.extreme();
-  }, 6000);
-  
-  setTimeout(() => {
-    console.log("Testing explosion shake...");
-    EnhancedCameraShake.explosion();
-  }, 8000);
-  
-  setTimeout(() => {
-    console.log("Testing level complete shake...");
-    EnhancedCameraShake.levelComplete();
-  }, 10000);
+  return background;
 }
 
-// Make test available in the window object
-window.testEnhancedCameraShake = testEnhancedCameraShake;
+// ... rest of the existing code ...

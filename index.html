@@ -10,9 +10,16 @@
     <div id="intro">
       <div class="title-3d">FETCH or CATCH!</div>
       
-      <!-- Enhanced 3D elements -->
-      <div class="floating-magnet">🧲</div>
+      <!-- Added game description -->
+      <div class="game-description">
+        <p class="fun-text description-text">Move your basket to catch yummy fruits and shiny treasures!</p>
+        <p class="fun-text description-text">Watch out for bombs and obstacles that will cost you lives!</p>
+        <p class="fun-text description-text">Collect special power-ups for awesome abilities!</p>
+      </div>
+      
+      <!-- Simplified floating elements -->
       <div class="floating-star left">⭐</div>
+      <div class="floating-magnet">🧲</div>
       <div class="floating-star right">⭐</div>
       
       <div class="spinner-container">
@@ -31,19 +38,37 @@
       <div id="simple-instructions">
         <p class="fun-text">Catch the GOOD stuff!</p>
         <p class="fun-text">Avoid the BAD stuff!</p>
-        <p class="fun-text">Get AWESOME powers!</p>
         <p class="control-hint" id="desktop-control-hint">Use ← → keys to move</p>
         <p class="control-hint" id="mobile-control-hint">Tap ◀ ▶ to move</p>
       </div>
       
-      <button id="startGameBtn" class="button wobble">PLAY NOW!</button>
+      <button id="optionsBtn" class="button wobble">CUSTOMIZE GAME</button>
+    </div>
+
+    <!-- Enhanced Options Screen -->
+    <div id="optionsScreen">
+      <div class="title-3d options-title">GAME OPTIONS</div>
       
-      <!-- 3D effects -->
-      <div class="floating-bomb">💣</div>
-      <div class="corner-decor top-left">🎮</div>
-      <div class="corner-decor top-right">🍦</div>
-      <div class="corner-decor bottom-left">🚀</div>
-      <div class="corner-decor bottom-right">🎯</div>
+      <div class="options-container">
+        <div class="option-section" id="backgroundSection">
+          <h3>Choose Background Theme</h3>
+          <div class="option-choices">
+            <!-- Theme options will be dynamically populated -->
+          </div>
+        </div>
+        
+        <div class="option-section" id="basketSection">
+          <h3>Choose Basket Style</h3>
+          <div class="option-choices">
+            <!-- Basket options will be dynamically populated -->
+          </div>
+        </div>
+      </div>
+      
+      <div class="options-buttons">
+        <button id="startGameBtn" class="button wobble">START GAME!</button>
+        <button id="backToIntroBtn" class="button back-button">BACK</button>
+      </div>
     </div>
 
     <div id="gameInterface">
@@ -79,6 +104,7 @@
     </div>
 
     <script src="enhanced-camera-shake.js"></script>
+    <script src="options.js"></script>
     <script src="game.js"></script>
   </body>
 </html>
