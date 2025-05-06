@@ -1,0 +1,208 @@
+/* Browser-Specific Font Adjustments */
+
+/* Chrome-specific adjustments */
+@media screen and (-webkit-min-device-pixel-ratio:0) {
+  body {
+    font-size: 16px;
+    line-height: 1.5;
+  }
+  
+  .title-3d {
+    font-size: 32px;
+    letter-spacing: 1.5px;
+  }
+  
+  #score, #level, #lives {
+    font-size: 16px;
+    padding: 8px 16px;
+  }
+  
+  .button {
+    font-size: 16px;
+    padding: 12px 24px;
+  }
+}
+
+/* Firefox-specific adjustments */
+@-moz-document url-prefix() {
+  body {
+    font-size: 17px;
+    line-height: 1.6;
+  }
+  
+  .title-3d {
+    font-size: 34px;
+    letter-spacing: 2px;
+  }
+  
+  #score, #level, #lives {
+    font-size: 17px;
+    padding: 9px 17px;
+  }
+  
+  .button {
+    font-size: 17px;
+    padding: 13px 25px;
+  }
+}
+
+/* Safari-specific adjustments */
+@media screen and (min-color-index:0) and(-webkit-min-device-pixel-ratio:0) {
+  body {
+    font-size: 16px;
+    line-height: 1.5;
+  }
+  
+  .title-3d {
+    font-size: 33px;
+    letter-spacing: 1.8px;
+  }
+  
+  #score, #level, #lives {
+    font-size: 16px;
+    padding: 8px 16px;
+  }
+  
+  .button {
+    font-size: 16px;
+    padding: 12px 24px;
+  }
+}
+
+/* Edge-specific adjustments */
+@supports (-ms-accelerator:true) {
+  body {
+    font-size: 16.5px;
+    line-height: 1.55;
+  }
+  
+  .title-3d {
+    font-size: 33px;
+    letter-spacing: 1.7px;
+  }
+  
+  #score, #level, #lives {
+    font-size: 16.5px;
+    padding: 8.5px 16.5px;
+  }
+  
+  .button {
+    font-size: 16.5px;
+    padding: 12.5px 24.5px;
+  }
+}
+
+/* Opera-specific adjustments */
+@media screen and (-webkit-min-device-pixel-ratio:0) and (min-resolution:.001dpcm) {
+  body {
+    font-size: 16.2px;
+    line-height: 1.52;
+  }
+  
+  .title-3d {
+    font-size: 32.5px;
+    letter-spacing: 1.6px;
+  }
+  
+  #score, #level, #lives {
+    font-size: 16.2px;
+    padding: 8.2px 16.2px;
+  }
+  
+  .button {
+    font-size: 16.2px;
+    padding: 12.2px 24.2px;
+  }
+}
+
+/* Mobile-specific adjustments */
+@media only screen and (max-width: 768px) {
+  body {
+    font-size: 15px;
+    line-height: 1.4;
+  }
+  
+  .title-3d {
+    font-size: 28px;
+    letter-spacing: 1.2px;
+  }
+  
+  #score, #level, #lives {
+    font-size: 14px;
+    padding: 7px 14px;
+  }
+  
+  .button {
+    font-size: 15px;
+    padding: 11px 22px;
+  }
+}
+
+/* Tablet-specific adjustments */
+@media only screen and (min-width: 769px) and (max-width: 1024px) {
+  body {
+    font-size: 16px;
+    line-height: 1.5;
+  }
+  
+  .title-3d {
+    font-size: 30px;
+    letter-spacing: 1.4px;
+  }
+  
+  #score, #level, #lives {
+    font-size: 15px;
+    padding: 8px 15px;
+  }
+  
+  .button {
+    font-size: 16px;
+    padding: 12px 23px;
+  }
+}
+
+/* High DPI screen adjustments */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  body {
+    font-size: 17px;
+    line-height: 1.6;
+  }
+  
+  .title-3d {
+    font-size: 35px;
+    letter-spacing: 2px;
+  }
+  
+  #score, #level, #lives {
+    font-size: 17px;
+    padding: 9px 17px;
+  }
+  
+  .button {
+    font-size: 17px;
+    padding: 13px 25px;
+  }
+}
+
+/* Low DPI screen adjustments */
+@media (-webkit-min-device-pixel-ratio: 1), (min-resolution: 96dpi) {
+  body {
+    font-size: 16px;
+    line-height: 1.5;
+  }
+  
+  .title-3d {
+    font-size: 32px;
+    letter-spacing: 1.5px;
+  }
+  
+  #score, #level, #lives {
+    font-size: 16px;
+    padding: 8px 16px;
+  }
+  
+  .button {
+    font-size: 16px;
+    padding: 12px 24px;
+  }
+}
