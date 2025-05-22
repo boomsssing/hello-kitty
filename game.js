@@ -4549,10 +4549,9 @@ function getDarkerPowerupColor() {
   return darkenColor(basket.color, 30);
 }
 
-// ... existing code ...
-
 // Function to apply the selected theme
 function applyTheme(theme) {
+  console.log('Applying theme:', theme);
   // If options.js has loaded and defined themeOptions, use that implementation
   if (typeof window.applyTheme === 'function' && window.applyTheme !== applyTheme) {
     return window.applyTheme(theme);
@@ -4646,17 +4645,66 @@ function updatePseudoElementStyle(selector, cssText) {
 
 // Function to properly initialize the game for the current device
 function initializeGameForDevice() {
+  // Set viewport height variable for mobile browsers
+  function updateViewportHeight() {
+    const vh = window.innerHeight * 0.01;
+    document.documentElement.style.setProperty('--vh', `${vh}px`);
+  }
+  
+  // Update viewport height on load and resize
+  updateViewportHeight();
+  window.addEventListener('resize', updateViewportHeight);
+  
   // Force a resize to ensure proper canvas dimensions
   resizeCanvas();
   
   // Check if we're on a mobile device and setup controls if needed
-  if ("ontouchstart" in window || navigator.maxTouchPoints > 0) {
+  const isMobile = "ontouchstart" in window || navigator.maxTouchPoints > 0;
+  
+  if (isMobile) {
     const mobileControls = document.getElementById('mobileControls') || setupMobileControls();
     mobileControls.style.display = "flex";
     
-    // Add touch support for canvas
-    canvas.addEventListener('touchmove', touchMoveBasket, { passive: false });
-    canvas.addEventListener('touchstart', touchMoveBasket, { passive: false });
+    // Enhanced touch support for canvas with throttling
+    let lastTouchTime = 0;
+    const touchThrottle = 1000 / 60; // Limit to 60fps for touch events
+    
+    const handleTouch = (e) => {
+      if (!gameState.gameActive || gameState.isPaused) return;
+      
+      const now = Date.now();
+      if (now - lastTouchTime < touchThrottle) {
+        e.preventDefault();
+        return;
+      }
+      lastTouchTime = now;
+      
+      e.preventDefault();
+      
+      // Process all touches for multi-touch support
+      const touches = e.changedTouches;
+      for (let i = 0; i < touches.length; i++) {
+        touchMoveBasket({
+          ...e,
+          clientX: touches[i].clientX,
+          clientY: touches[i].clientY,
+          preventDefault: () => e.preventDefault()
+        });
+      }
+    };
+    
+    // Add touch event listeners with passive: false to prevent scrolling
+    const touchOptions = { passive: false, capture: true };
+    canvas.addEventListener('touchstart', handleTouch, touchOptions);
+    canvas.addEventListener('touchmove', handleTouch, touchOptions);
+    
+    // Prevent context menu on long press
+    canvas.addEventListener('contextmenu', (e) => {
+      if (gameState.gameActive && !gameState.isPaused) {
+        e.preventDefault();
+        return false;
+      }
+    });
     
     // Show mobile instructions
     if (document.getElementById("mobile-control-hint")) {
@@ -4664,30 +4712,43 @@ function initializeGameForDevice() {
       document.getElementById("desktop-control-hint").style.display = "none";
     }
     
-    // Handle device orientation change
-    window.addEventListener('orientationchange', function() {
-      setTimeout(function() {
+    // Handle device orientation change with debounce
+    let orientationChangeTimeout;
+    const handleOrientationChange = () => {
+      clearTimeout(orientationChangeTimeout);
+      orientationChangeTimeout = setTimeout(() => {
+        updateViewportHeight();
         resizeCanvas();
         positionMobileControls();
         
-        // Ensure the basket stays in bounds after orientation change
         if (basket) {
           basket.x = Math.max(0, Math.min(canvas.width - basket.width, basket.x));
         }
       }, 300);
-    });
+    };
     
-    // Improve scrolling and touch handling
-    document.addEventListener('touchmove', function(e) {
-      // Prevent scrolling if in game
-      if (gameState.gameActive && !gameState.isPaused) {
-        e.preventDefault();
-      }
-    }, { passive: false });
+    window.addEventListener('orientationchange', handleOrientationChange);
+    
+    // Prevent scrolling on the document
+    document.body.style.overflow = 'hidden';
+    document.body.style.touchAction = 'none';
+    document.body.style.webkitOverflowScrolling = 'touch';
+    
+    // Store cleanup function
+    window.cleanupMobileListeners = () => {
+      window.removeEventListener('orientationchange', handleOrientationChange);
+      canvas.removeEventListener('touchstart', handleTouch);
+      canvas.removeEventListener('touchmove', handleTouch);
+      document.body.style.overflow = '';
+      document.body.style.touchAction = '';
+      document.body.style.webkitOverflowScrolling = '';
+    };
   } else {
-    // Desktop specific handling if needed
-    document.getElementById("mobile-control-hint").style.display = "none";
-    document.getElementById("desktop-control-hint").style.display = "inline-block";
+    // Desktop specific handling
+    if (document.getElementById("mobile-control-hint")) {
+      document.getElementById("mobile-control-hint").style.display = "none";
+      document.getElementById("desktop-control-hint").style.display = "inline-block";
+    }
   }
   
   // Check for low-performance devices
@@ -4698,13 +4759,72 @@ function initializeGameForDevice() {
     // Reduce particle effects and animations
     gameState.performanceMode = true;
   }
+  
+  // Clean up event listeners when leaving the page
+  window.addEventListener('beforeunload', () => {
+    if (window.cleanupMobileListeners) {
+      window.cleanupMobileListeners();
+    }
+  });
 }
 
-// Call initialize function when DOM is ready
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initializeGameForDevice);
-} else {
+// Store cleanup functions
+const cleanupFunctions = [];
+
+// Add cleanup function
+function addCleanup(fn) {
+  cleanupFunctions.push(fn);
+}
+
+// Initialize game when DOM is ready
+function initGame() {
+  // Initialize the game
   initializeGameForDevice();
+  
+  // Add cleanup for resize event
+  const updateViewportHeight = () => {
+    const vh = window.innerHeight * 0.01;
+    document.documentElement.style.setProperty('--vh', `${vh}px`);
+  };
+  
+  window.addEventListener('resize', updateViewportHeight);
+  addCleanup(() => {
+    window.removeEventListener('resize', updateViewportHeight);
+  });
+  
+  // Add global cleanup
+  window.addEventListener('beforeunload', cleanup);
+  addCleanup(() => {
+    window.removeEventListener('beforeunload', cleanup);
+  });
+}
+
+// Cleanup function
+function cleanup() {
+  // Call all cleanup functions
+  cleanupFunctions.forEach(fn => fn());
+  
+  // Clean up mobile listeners if they exist
+  if (window.cleanupMobileListeners) {
+    window.cleanupMobileListeners();
+  }
+  
+  // Clean up game state
+  if (window.gameState) {
+    window.gameState = null;
+  }
+  
+  // Cancel any pending animation frames
+  if (window.animationFrame) {
+    cancelAnimationFrame(window.animationFrame);
+  }
+}
+
+// Initialize game when DOM is ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initGame);
+} else {
+  initGame();
 }
 
 // Also call it when the options button is clicked

@@ -9,6 +9,7 @@
   --ui-padding: 8px 16px;
   --button-font-size: 16px;
   --button-padding: 12px 24px;
+  --touch-target-min: 44px; /* Minimum touch target size for better mobile UX */
   
   /* Mobile-first overrides */
   --mobile-font-size: 15px;
@@ -16,9 +17,15 @@
   --mobile-title-size: 28px;
   --mobile-letter-spacing: 1.2px;
   --mobile-ui-font-size: 14px;
-  --mobile-ui-padding: 7px 14px;
+  --mobile-ui-padding: 12px 20px; /* Increased padding for better touch targets */
   --mobile-button-font-size: 15px;
-  --mobile-button-padding: 11px 22px;
+  --mobile-button-padding: 12px 24px; /* Increased padding for better touch targets */
+  
+  /* Safe area insets for notched devices */
+  --safe-area-top: env(safe-area-inset-top, 0px);
+  --safe-area-right: env(safe-area-inset-right, 0px);
+  --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-area-left: env(safe-area-inset-left, 0px);
 }
 
 /* Base styles */
@@ -92,14 +99,30 @@ body {
   position: relative;
   width: 100%;
   max-width: 100%;
+  height: 100vh;
+  height: calc(var(--vh, 1vh) * 100);
   overflow: hidden;
+  -webkit-overflow-scrolling: touch;
+  touch-action: none;
+  background: #1a2a6c;
+  margin: 0;
+  padding: 0;
 }
 
 /* Ensure game canvas is properly contained */
 #gameCanvas {
   display: block;
   width: 100%;
-  height: auto;
+  height: 100%;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  outline: none;
   max-height: 100vh;
   margin: 0 auto;
 }
