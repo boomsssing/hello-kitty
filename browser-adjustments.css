@@ -1,5 +1,4 @@
-/* Browser-Specific Font Adjustments */
-/* Using CSS variables for consistent theming across browsers */
+/* Browser-Specific and Responsive Adjustments */
 :root {
   /* Base values for all browsers */
   --font-size: 16px;
@@ -10,44 +9,63 @@
   --ui-padding: 8px 16px;
   --button-font-size: 16px;
   --button-padding: 12px 24px;
+  
+  /* Mobile-first overrides */
+  --mobile-font-size: 15px;
+  --mobile-line-height: 1.4;
+  --mobile-title-size: 28px;
+  --mobile-letter-spacing: 1.2px;
+  --mobile-ui-font-size: 14px;
+  --mobile-ui-padding: 7px 14px;
+  --mobile-button-font-size: 15px;
+  --mobile-button-padding: 11px 22px;
 }
 
 /* Base styles */
 body {
-  font-size: var(--font-size);
-  line-height: var(--line-height);
+  font-size: var(--mobile-font-size);
+  line-height: var(--mobile-line-height);
 }
 
 .title-3d {
-  font-size: var(--title-size);
-  letter-spacing: var(--letter-spacing);
+  font-size: var(--mobile-title-size);
+  letter-spacing: var(--mobile-letter-spacing);
 }
 
 #score, #level, #lives {
-  font-size: var(--ui-font-size);
-  padding: var(--ui-padding);
+  font-size: var(--mobile-ui-font-size);
+  padding: var(--mobile-ui-padding);
 }
 
 .button {
-  font-size: var(--button-font-size);
-  padding: var(--button-padding);
+  font-size: var(--mobile-button-font-size);
+  padding: var(--mobile-button-padding);
 }
 
-/* Chrome-specific adjustments */
-@media screen and (-webkit-min-device-pixel-ratio:0) {
-  :root {
-    --font-size: 16px;
-    --line-height: 1.5;
-    --title-size: 32px;
-    --letter-spacing: 1.5px;
-    --ui-font-size: 16px;
-    --ui-padding: 8px 16px;
-    --button-font-size: 16px;
-    --button-padding: 12px 24px;
+/* Tablet and Desktop Styles (768px and up) */
+@media (min-width: 769px) {
+  body {
+    font-size: var(--font-size);
+    line-height: var(--line-height);
+  }
+  
+  .title-3d {
+    font-size: var(--title-size);
+    letter-spacing: var(--letter-spacing);
+  }
+  
+  #score, #level, #lives {
+    font-size: var(--ui-font-size);
+    padding: var(--ui-padding);
+  }
+  
+  .button {
+    font-size: var(--button-font-size);
+    padding: var(--button-padding);
   }
 }
 
-/* Firefox-specific adjustments */
+/* Browser-specific adjustments */
 @-moz-document url-prefix() {
   :root {
     --font-size: 17px;
@@ -61,136 +79,56 @@ body {
   }
 }
 
-/* Safari-specific adjustments */
-@media screen and (min-color-index:0) and (-webkit-min-device-pixel-ratio:0) {
-  :root {
-    --font-size: 16px;
-    --line-height: 1.5;
-    --title-size: 33px;
-    --letter-spacing: 1.8px;
-    --ui-font-size: 16px;
-    --ui-padding: 8px 16px;
-    --button-font-size: 16px;
-    --button-padding: 12px 24px;
-  }
-}
-
-/* Edge-specific adjustments */
-@supports (-ms-accelerator:true) {
-  :root {
-    --font-size: 16.5px;
-    --line-height: 1.55;
-    --title-size: 33px;
-    --letter-spacing: 1.7px;
-    --ui-font-size: 16.5px;
-    --ui-padding: 8.5px 16.5px;
-    --button-font-size: 16.5px;
-    --button-padding: 12.5px 24.5px;
-  }
-}
-
-/* Opera-specific adjustments */
-@media screen and (-webkit-min-device-pixel-ratio:0) and (min-resolution:.001dpcm) {
-  :root {
-    --font-size: 16.2px;
-    --line-height: 1.52;
-    --title-size: 32.5px;
-    --letter-spacing: 1.6px;
-    --ui-font-size: 16.2px;
-    --ui-padding: 8.2px 16.2px;
-    --button-font-size: 16.2px;
-    --button-padding: 12.2px 24.2px;
-  }
-}
-
-/* Mobile-specific adjustments */
-@media only screen and (max-width: 768px) {
-  body {
-    font-size: 15px;
-    line-height: 1.4;
-  }
-  
-  .title-3d {
-    font-size: 28px;
-    letter-spacing: 1.2px;
-  }
-  
-  #score, #level, #lives {
-    font-size: 14px;
-    padding: 7px 14px;
-  }
-  
-  .button {
-    font-size: 15px;
-    padding: 11px 22px;
-  }
-}
-
-/* Tablet-specific adjustments */
-@media only screen and (min-width: 769px) and (max-width: 1024px) {
-  body {
-    font-size: 16px;
-    line-height: 1.5;
-  }
-  
-  .title-3d {
-    font-size: 30px;
-    letter-spacing: 1.4px;
-  }
-  
-  #score, #level, #lives {
-    font-size: 15px;
-    padding: 8px 15px;
-  }
-  
-  .button {
-    font-size: 16px;
-    padding: 12px 23px;
-  }
-}
-
-/* High DPI screen adjustments */
+/* High DPI screens */
 @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
-  body {
-    font-size: 17px;
-    line-height: 1.6;
-  }
-  
-  .title-3d {
-    font-size: 35px;
-    letter-spacing: 2px;
-  }
-  
-  #score, #level, #lives {
-    font-size: 17px;
-    padding: 9px 17px;
-  }
-  
-  .button {
-    font-size: 17px;
-    padding: 13px 25px;
+  :root {
+    --font-size: 17px;
+    --mobile-font-size: 16px;
   }
 }
 
-/* Low DPI screen adjustments */
-@media (-webkit-min-device-pixel-ratio: 1), (min-resolution: 96dpi) {
-  body {
-    font-size: 16px;
-    line-height: 1.5;
+/* Game-specific container to prevent layout shifts */
+#gameContainer {
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+/* Ensure game canvas is properly contained */
+#gameCanvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 100vh;
+  margin: 0 auto;
+}
+
+/* Fix for iOS viewport height */
+@supports (-webkit-touch-callout: none) {
+  #gameContainer {
+    height: -webkit-fill-available;
   }
   
-  .title-3d {
-    font-size: 32px;
-    letter-spacing: 1.5px;
+  #gameCanvas {
+    height: -webkit-fill-available;
+    max-height: -webkit-fill-available;
   }
-  
-  #score, #level, #lives {
-    font-size: 16px;
-    padding: 8px 16px;
-  }
-  
-  .button {
-    font-size: 16px;
-    padding: 12px 24px;
+}
+
+/* Prevent text selection during gameplay */
+#gameInterface * {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Fix for Chrome mobile address bar */
+@media (max-height: 600px) and (orientation: portrait) {
+  :root {
+    --mobile-title-size: 24px;
+    --mobile-font-size: 14px;
+    --mobile-ui-font-size: 13px;
   }
 }
