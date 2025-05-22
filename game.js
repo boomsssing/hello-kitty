@@ -4646,17 +4646,53 @@ function updatePseudoElementStyle(selector, cssText) {
 // Function to properly initialize the game for the current device
 function initializeGameForDevice() {
   // Set viewport height variable for mobile browsers
+  let resizeTimeout;
   function updateViewportHeight() {
-    const vh = window.innerHeight * 0.01;
-    document.documentElement.style.setProperty('--vh', `${vh}px`);
+    // Clear any pending resize
+    if (resizeTimeout) {
+      clearTimeout(resizeTimeout);
+    }
+    
+    // Debounce the resize operation
+    resizeTimeout = setTimeout(() => {
+      const vh = window.innerHeight * 0.01;
+      document.documentElement.style.setProperty('--vh', `${vh}px`);
+      
+      // Force a resize of the canvas after a small delay
+      requestAnimationFrame(() => {
+        resizeCanvas();
+        positionMobileControls();
+      });
+    }, 100);
   }
   
-  // Update viewport height on load and resize
+  // Initial viewport setup
   updateViewportHeight();
-  window.addEventListener('resize', updateViewportHeight);
   
-  // Force a resize to ensure proper canvas dimensions
-  resizeCanvas();
+  // Add debounced resize listener
+  const debouncedResize = debounce(updateViewportHeight, 100);
+  window.addEventListener('resize', debouncedResize);
+  
+  // Add cleanup for resize listener
+  addCleanup(() => {
+    window.removeEventListener('resize', debouncedResize);
+    if (resizeTimeout) {
+      clearTimeout(resizeTimeout);
+    }
+  });
+  
+  // Helper function for debouncing
+  function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+      const later = () => {
+        clearTimeout(timeout);
+        func(...args);
+      };
+      clearTimeout(timeout);
+      timeout = setTimeout(later, wait);
+    };
+  }
   
   // Check if we're on a mobile device and setup controls if needed
   const isMobile = "ontouchstart" in window || navigator.maxTouchPoints > 0;
@@ -4665,14 +4701,19 @@ function initializeGameForDevice() {
     const mobileControls = document.getElementById('mobileControls') || setupMobileControls();
     mobileControls.style.display = "flex";
     
-    // Enhanced touch support for canvas with throttling
+    // Enhanced touch support with better performance and reliability
     let lastTouchTime = 0;
     const touchThrottle = 1000 / 60; // Limit to 60fps for touch events
+    let touchStartX = 0;
+    let touchStartY = 0;
     
     const handleTouch = (e) => {
-      if (!gameState.gameActive || gameState.isPaused) return;
+      if (!gameState.gameActive || gameState.isPaused) {
+        e.preventDefault();
+        return;
+      }
       
-      const now = Date.now();
+      const now = performance.now();
       if (now - lastTouchTime < touchThrottle) {
         e.preventDefault();
         return;
@@ -4681,55 +4722,134 @@ function initializeGameForDevice() {
       
       e.preventDefault();
       
-      // Process all touches for multi-touch support
-      const touches = e.changedTouches;
-      for (let i = 0; i < touches.length; i++) {
+      // Use the first touch for better performance
+      const touch = e.changedTouches[0];
+      if (!touch) return;
+      
+      // Handle touch start
+      if (e.type === 'touchstart') {
+        touchStartX = touch.clientX;
+        touchStartY = touch.clientY;
+      }
+      
+      // Calculate touch movement for better accuracy
+      const touchX = touch.clientX;
+      const touchY = touch.clientY;
+      
+      // Only process if touch has moved significantly (reduces jitter)
+      const dx = Math.abs(touchX - touchStartX);
+      const dy = Math.abs(touchY - touchStartY);
+      
+      if (dx > 2 || dy > 2) { // Minimum movement threshold
         touchMoveBasket({
           ...e,
-          clientX: touches[i].clientX,
-          clientY: touches[i].clientY,
+          clientX: touchX,
+          clientY: touchY,
           preventDefault: () => e.preventDefault()
         });
+        
+        // Update start position for next move
+        touchStartX = touchX;
+        touchStartY = touchY;
       }
     };
     
-    // Add touch event listeners with passive: false to prevent scrolling
+    // Add touch event listeners with proper cleanup
     const touchOptions = { passive: false, capture: true };
-    canvas.addEventListener('touchstart', handleTouch, touchOptions);
-    canvas.addEventListener('touchmove', handleTouch, touchOptions);
+    const touchHandlers = {
+      touchstart: handleTouch,
+      touchmove: handleTouch,
+      touchend: handleTouch,
+      touchcancel: handleTouch
+    };
+    
+    // Add all touch event listeners
+    Object.entries(touchHandlers).forEach(([event, handler]) => {
+      canvas.addEventListener(event, handler, touchOptions);
+    });
     
     // Prevent context menu on long press
-    canvas.addEventListener('contextmenu', (e) => {
+    const handleContextMenu = (e) => {
       if (gameState.gameActive && !gameState.isPaused) {
         e.preventDefault();
         return false;
       }
-    });
-    
-    // Show mobile instructions
-    if (document.getElementById("mobile-control-hint")) {
-      document.getElementById("mobile-control-hint").style.display = "inline-block";
-      document.getElementById("desktop-control-hint").style.display = "none";
-    }
-    
-    // Handle device orientation change with debounce
-    let orientationChangeTimeout;
-    const handleOrientationChange = () => {
-      clearTimeout(orientationChangeTimeout);
-      orientationChangeTimeout = setTimeout(() => {
-        updateViewportHeight();
-        resizeCanvas();
-        positionMobileControls();
-        
-        if (basket) {
-          basket.x = Math.max(0, Math.min(canvas.width - basket.width, basket.x));
-        }
-      }, 300);
     };
     
-    window.addEventListener('orientationchange', handleOrientationChange);
+    canvas.addEventListener('contextmenu', handleContextMenu);
     
-    // Prevent scrolling on the document
+    // Show mobile instructions
+    const mobileHint = document.getElementById("mobile-control-hint");
+    const desktopHint = document.getElementById("desktop-control-hint");
+    
+    if (mobileHint && desktopHint) {
+      mobileHint.style.display = "inline-block";
+      desktopHint.style.display = "none";
+    }
+    
+    // Add cleanup function
+    addCleanup(() => {
+      // Remove all touch event listeners
+      Object.entries(touchHandlers).forEach(([event, handler]) => {
+        canvas.removeEventListener(event, handler, touchOptions);
+      });
+      
+      // Remove context menu handler
+      canvas.removeEventListener('contextmenu', handleContextMenu);
+      
+      // Reset hints if they exist
+      if (mobileHint && desktopHint) {
+        mobileHint.style.display = "";
+        desktopHint.style.display = "";
+      }
+    });
+    
+    // Handle device orientation change with debounce and performance optimization
+    let orientationChangeTimeout;
+    let lastOrientation = window.orientation;
+    
+    const handleOrientationChange = () => {
+      // Only proceed if orientation actually changed
+      if (window.orientation === lastOrientation) return;
+      lastOrientation = window.orientation;
+      
+      // Clear any pending updates
+      if (orientationChangeTimeout) {
+        clearTimeout(orientationChangeTimeout);
+      }
+      
+      // Use requestAnimationFrame for better performance
+      orientationChangeTimeout = requestAnimationFrame(() => {
+        // Update viewport and controls after a small delay
+        setTimeout(() => {
+          updateViewportHeight();
+          positionMobileControls();
+          
+          // Force a reflow to ensure proper rendering
+          if (canvas) {
+            const display = canvas.style.display;
+            canvas.style.display = 'none';
+            void canvas.offsetHeight; // Trigger reflow
+            canvas.style.display = display;
+          }
+        }, 100);
+      });
+    };
+    
+    // Add passive event listener for better performance
+    window.addEventListener('orientationchange', handleOrientationChange, { passive: true });
+    
+    // Add cleanup for orientation change
+    addCleanup(() => {
+      window.removeEventListener('orientationchange', handleOrientationChange, { passive: true });
+      if (orientationChangeTimeout) {
+        cancelAnimationFrame(orientationChangeTimeout);
+      }
+    });
+    
+    // Initial position of controls
+    positionMobileControls();
+    
     document.body.style.overflow = 'hidden';
     document.body.style.touchAction = 'none';
     document.body.style.webkitOverflowScrolling = 'touch';
@@ -4801,22 +4921,57 @@ function initGame() {
 
 // Cleanup function
 function cleanup() {
-  // Call all cleanup functions
-  cleanupFunctions.forEach(fn => fn());
-  
-  // Clean up mobile listeners if they exist
-  if (window.cleanupMobileListeners) {
-    window.cleanupMobileListeners();
-  }
-  
-  // Clean up game state
-  if (window.gameState) {
-    window.gameState = null;
-  }
-  
-  // Cancel any pending animation frames
-  if (window.animationFrame) {
-    cancelAnimationFrame(window.animationFrame);
+  try {
+    // Call all cleanup functions
+    while (cleanupFunctions.length) {
+      const fn = cleanupFunctions.pop();
+      if (typeof fn === 'function') {
+        try {
+          fn();
+        } catch (e) {
+          console.error('Error during cleanup:', e);
+        }
+      }
+    }
+    
+    // Clean up mobile listeners if they exist
+    if (typeof window.cleanupMobileListeners === 'function') {
+      try {
+        window.cleanupMobileListeners();
+      } catch (e) {
+        console.error('Error cleaning up mobile listeners:', e);
+      }
+    }
+    
+    // Clean up window properties
+    delete window.cleanupMobileListeners;
+    
+    // Clean up game state
+    if (window.gameState) {
+      // Stop any running sounds
+      if (window.sounds) {
+        Object.values(window.sounds).forEach(sound => {
+          if (sound && typeof sound.pause === 'function') {
+            sound.pause();
+            sound.currentTime = 0;
+          }
+        });
+      }
+      
+      // Clear intervals
+      if (window.obstacleInterval) clearInterval(window.obstacleInterval);
+      if (window.powerupInterval) clearInterval(window.powerupInterval);
+      
+      // Clear animation frames
+      if (window.animationFrame) {
+        cancelAnimationFrame(window.animationFrame);
+        window.animationFrame = null;
+      }
+      
+      window.gameState = null;
+    }
+  } catch (e) {
+    console.error('Error during cleanup:', e);
   }
 }
 
